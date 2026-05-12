@@ -1,0 +1,55 @@
+services:
+  db:
+    image: postgres:15
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-self_learning_vision}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "${POSTGRES_USER:-postgres}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build: ./apps/api
+    restart: unless-stopped
+    environment:
+      AUTH_ENABLED: ${AUTH_ENABLED:-false}
+      AUTH_DEV_EMAIL: ${AUTH_DEV_EMAIL:-local-user@self-learning-vision.local}
+      DATABASE_URL: ${DATABASE_URL:-postgresql://postgres:postgres@db:5432/self_learning_vision}
+      STORAGE_DIR: ${STORAGE_DIR:-/app/data/uploads}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
+      JWT_SECRET: ${JWT_SECRET:-change_me_before_public_deployments}
+      ENABLE_FACE_MATCHING: ${ENABLE_FACE_MATCHING:-true}
+      FACE_QUALITY_MIN_THRESHOLD: ${FACE_QUALITY_MIN_THRESHOLD:-0.40}
+      RECOGNITION_ACCEPT_THRESHOLD: ${RECOGNITION_ACCEPT_THRESHOLD:-0.72}
+      RECOGNITION_TENTATIVE_THRESHOLD: ${RECOGNITION_TENTATIVE_THRESHOLD:-0.50}
+      UNKNOWN_CLUSTER_SIMILARITY_THRESHOLD: ${UNKNOWN_CLUSTER_SIMILARITY_THRESHOLD:-0.88}
+      UNKNOWN_CLUSTER_FAMILIARITY_MIN_SAMPLES: ${UNKNOWN_CLUSTER_FAMILIARITY_MIN_SAMPLES:-2}
+    volumes:
+      - ./data:/app/data
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "${API_PORT:-8000}:8000"
+
+  web:
+    build: ./apps/web
+    restart: unless-stopped
+    environment:
+      NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:-http://localhost:8000}
+      NEXT_PUBLIC_AUTH_ENABLED: ${NEXT_PUBLIC_AUTH_ENABLED:-false}
+    depends_on:
+      - api
+    ports:
+      - "${WEB_PORT:-3000}:3000"
+
+volumes:
+  pgdata:

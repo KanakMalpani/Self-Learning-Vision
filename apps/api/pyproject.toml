@@ -1,0 +1,20 @@
+[project]
+name = "self-learning-vision-api"
+version = "0.1.0"
+description = "Local-first Self-Learning Vision assistant API"
+requires-python = ">=3.11"
+dependencies = []
+
+[tool.black]
+line-length = 100
+
+[tool.ruff]
+line-length = 100
+select = ["E", "F", "B", "I", "C4", "UP"]
+ignore = []
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+pythonpath = ["."]
+

@@ -1,0 +1,27 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+body {
+  @apply bg-board-base text-gray-200 min-h-screen;
+  background-image: linear-gradient(135deg, rgba(255,255,255,0.02) 0%, rgba(255,255,255,0.01) 100%),
+    repeating-linear-gradient(0deg, transparent, transparent 48px, rgba(255,255,255,0.015) 50px, rgba(255,255,255,0.015) 52px),
+    repeating-linear-gradient(90deg, transparent, transparent 48px, rgba(255,255,255,0.015) 50px, rgba(255,255,255,0.015) 52px);
+  background-size: cover, 52px 52px, 52px 52px;
+}
+
+a {
+  @apply text-board-accent hover:text-yellow-200 transition-colors;
+}
+
+.card {
+  @apply bg-board-card/90 backdrop-blur border border-white/5 rounded-xl shadow-card;
+}
+
+.badge {
+  @apply inline-flex items-center px-2 py-1 text-xs uppercase tracking-widest rounded-md bg-white/10 text-gray-100;
+}

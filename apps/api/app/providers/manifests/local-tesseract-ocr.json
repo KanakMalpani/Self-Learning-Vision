@@ -1,0 +1,16 @@
+{
+  "provider_id": "local-tesseract-ocr",
+  "display_name": "Local Tesseract OCR",
+  "mode": "local_free",
+  "capabilities": ["ocr"],
+  "status": "manifest_only",
+  "images_leave_device": false,
+  "embeddings_stored_locally": true,
+  "enabled_by_default": false,
+  "recommended_for": ["documents", "labels", "inventory tags", "receipts"],
+  "env_vars": ["TESSERACT_CMD"],
+  "latency_profile": "medium on CPU",
+  "cost_model": "free",
+  "setup": "Install Tesseract and add a local OCR provider entrypoint when ready.",
+  "privacy_notes": "Designed for local OCR; images should stay on the machine."
+}

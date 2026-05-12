@@ -1,0 +1,17 @@
+{
+  "provider_id": "local-openclip-classifier",
+  "display_name": "Local OpenCLIP Classifier",
+  "mode": "local_free",
+  "capabilities": ["image_classification", "multimodal_reasoning"],
+  "status": "manifest_only",
+  "images_leave_device": false,
+  "embeddings_stored_locally": true,
+  "enabled_by_default": false,
+  "recommended_for": ["object memory", "scene memory", "product matching"],
+  "env_vars": ["OPENCLIP_MODEL_NAME"],
+  "expected_dimensions": null,
+  "latency_profile": "medium on CPU, low on GPU",
+  "cost_model": "free",
+  "setup": "Install OpenCLIP and add an implementation entrypoint when ready.",
+  "privacy_notes": "Designed for local inference; images should stay on the machine."
+}

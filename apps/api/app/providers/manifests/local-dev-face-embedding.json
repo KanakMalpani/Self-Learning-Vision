@@ -1,0 +1,17 @@
+{
+  "provider_id": "local-dev-face-embedding",
+  "display_name": "Local Dev Face Embedding Plugin",
+  "mode": "local_free",
+  "capabilities": ["face_embedding"],
+  "status": "manifest_ready",
+  "images_leave_device": false,
+  "embeddings_stored_locally": true,
+  "enabled_by_default": false,
+  "recommended_for": ["plugin registry smoke tests", "local development", "free setups"],
+  "expected_dimensions": null,
+  "latency_profile": "low to medium on CPU",
+  "cost_model": "free",
+  "entrypoint": "app.providers.local:LocalFaceEmbeddingProvider",
+  "setup": "Ships with the repo as an example file-backed provider manifest.",
+  "privacy_notes": "Images stay on the local machine."
+}
