@@ -30,7 +30,7 @@ Suggested environment variables for custom integrations:
 VISION_PROVIDER=local
 EMBEDDING_PROVIDER=auto
 PAID_PROVIDER_ENABLED=false
-PAID_PROVIDER_API_KEY=
+PAID_PROVIDER_TOKEN=
 ```
 
 ## Built-In Provider Choices

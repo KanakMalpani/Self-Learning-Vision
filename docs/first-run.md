@@ -49,7 +49,7 @@ Use paid or hosted providers only when intentionally configured:
 ```env
 EMBEDDING_PROVIDER=paid
 PAID_PROVIDER_ENABLED=true
-PAID_PROVIDER_API_KEY=your_key_here
+PAID_PROVIDER_TOKEN=your_token_here
 PRIVACY_LOCAL_ONLY_MODE=false
 PRIVACY_ALLOW_HOSTED_PROVIDERS=true
 ```

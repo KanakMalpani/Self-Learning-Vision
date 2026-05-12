@@ -156,7 +156,7 @@ Provider selection is controlled by:
 
 - `EMBEDDING_PROVIDER=auto`
 - `PAID_PROVIDER_ENABLED=false`
-- `PAID_PROVIDER_API_KEY=`
+- `PAID_PROVIDER_TOKEN=`
 
 ## Invariants
 
