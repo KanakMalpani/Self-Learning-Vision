@@ -114,6 +114,7 @@ We include a reference standard for building responsible self-learning vision sy
 | 🎭 [Demo Walkthrough](docs/demo-walkthrough.md) | 📊 [Memory Lifecycle](docs/memory-lifecycle.md) | 🧪 [Evaluation Dashboard](docs/evaluation-dashboard.md) |
 | 🧑‍🏫 [Learning Review](docs/learning-review.md) | 🛡️ [Privacy Vault](docs/privacy-vault.md) | 📏 [Quality Toolkit](docs/memory-quality-toolkit.md) |
 | 📝 [Correction UX](docs/correction-ux.md) | 🔒 [Privacy](docs/privacy.md) | 📜 [Vision Standard](docs/self-learning-vision-standard.md) |
+| ⚙️ [v0.2 Production Upgrades](docs/v0.2-production-upgrades.md) | 🚀 [Launch Checklist](docs/github-launch-checklist.md) | 🔐 [Security](SECURITY.md) |
 
 ---
 

@@ -2,6 +2,7 @@
 __pycache__/
 *.py[cod]
 .pytest_cache/
+.pytest_tmp/
 .ruff_cache/
 .mypy_cache/
 .venv/
@@ -24,6 +25,8 @@ pnpm-debug.log*
 # Local app data and generated artifacts
 data/uploads/*
 !data/uploads/.gitkeep
+data/models/
+data/vector-store/
 data/face-references/
 data/memory-entities/
 data/active-learning/
@@ -41,12 +44,16 @@ reports/
 *.vault.json
 *.slv-vault
 *.log
+scripts/fetch_logs.py
+scripts/update_readme.py
 apps/api/full_test_output*.txt
 apps/api/test_results.txt
 apps/api/out.txt
 apps/web/full_test_output*.txt
 apps/web/test_results.txt
 apps/web/out.txt
+apps/web/test-results/
+apps/web/playwright-report/
 
 # OS / IDE
 .DS_Store

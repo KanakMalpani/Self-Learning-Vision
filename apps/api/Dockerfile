@@ -5,12 +5,17 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /app
 
+ARG INSTALL_PRODUCTION_EXTRAS=false
+
 RUN apt-get update \
     && apt-get install -y --no-install-recommends libglib2.0-0 libgl1 \
     && rm -rf /var/lib/apt/lists/*
 
-COPY requirements.txt constraints.txt ./
+COPY requirements.txt requirements-production.txt constraints.txt ./
 RUN pip install --no-cache-dir -r requirements.txt -c constraints.txt
+RUN if [ "$INSTALL_PRODUCTION_EXTRAS" = "true" ]; then \
+      pip install --no-cache-dir -r requirements-production.txt -c constraints.txt; \
+    fi
 
 COPY . .
 

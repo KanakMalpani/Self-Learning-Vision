@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import List, Literal, Optional
 from uuid import UUID
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 from app.models.memory_run import MemoryRunStatus
 from app.schemas.memory_report import MemoryReport
@@ -466,6 +466,21 @@ class ProviderConformanceListResponse(BaseModel):
     passing_count: int = 0
 
 
+class ProviderHealthItem(BaseModel):
+    model_config = ConfigDict(protected_namespaces=())
+
+    provider_id: str
+    ready: bool = False
+    status: str
+    detail: str = ""
+    model_cache_dir: str = ""
+    optional_dependencies: dict[str, bool] = Field(default_factory=dict)
+
+
+class ProviderHealthResponse(BaseModel):
+    providers: list[ProviderHealthItem] = Field(default_factory=list)
+
+
 class EvaluationMetricsResponse(BaseModel):
     memory_runs: int = 0
     recognition_decisions: dict[str, int] = Field(default_factory=dict)
@@ -750,3 +765,4 @@ class HealthResponse(BaseModel):
 class ReadinessResponse(BaseModel):
     status: str
     dependencies: dict[str, bool]
+    optional_features: dict[str, object] = Field(default_factory=dict)

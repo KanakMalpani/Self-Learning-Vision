@@ -82,6 +82,8 @@ from app.schemas import (
     PrivacySettingsUpdateRequest,
     ProviderCardItem,
     ProviderConformanceListResponse,
+    ProviderHealthItem,
+    ProviderHealthResponse,
     ProviderMarketplaceResponse,
     ProviderPluginListResponse,
     ProviderScorecardResponse,
@@ -133,6 +135,7 @@ from app.services.memory_search import search_memory_entities
 from app.services.privacy_settings_registry import PrivacySettingsRecord, PrivacySettingsRegistry
 from app.services.privacy_vault import PrivacyVaultService, VaultEncryptionUnavailable
 from app.services.provider_conformance import evaluate_provider_catalog
+from app.services.model_assets import provider_health
 from app.services.provider_marketplace import (
     PROVIDER_CAPABILITIES,
     ProviderCard,
@@ -1094,7 +1097,24 @@ def readiness(db: Session = Depends(get_db)) -> ReadinessResponse | Response:
         pass
 
     status = "ok" if all(dependencies.values()) else "not ready"
-    payload = ReadinessResponse(status=status, dependencies=dependencies)
+    health_items = provider_health(settings.model_cache_dir)
+    payload = ReadinessResponse(
+        status=status,
+        dependencies=dependencies,
+        optional_features={
+            "embedding_provider": settings.embedding_provider,
+            "vector_store": settings.vector_store,
+            "job_backend": settings.job_backend,
+            "providers": [
+                {
+                    "provider_id": item.provider_id,
+                    "ready": item.ready,
+                    "status": item.status,
+                }
+                for item in health_items
+            ],
+        },
+    )
     if status != "ok":
         return Response(content=payload.model_dump_json(), media_type="application/json", status_code=503)
     return payload
@@ -1776,6 +1796,24 @@ def list_provider_conformance(current_user: User = Depends(get_current_user)) ->
     local_only, allow_hosted = _provider_privacy_flags(user_id)
     cards = provider_marketplace.list_cards(privacy_local_only=local_only, allow_hosted=allow_hosted)
     return ProviderConformanceListResponse(**evaluate_provider_catalog(cards))
+
+
+@app.get("/api/v1/providers/health", response_model=ProviderHealthResponse)
+def list_provider_health(current_user: User = Depends(get_current_user)) -> ProviderHealthResponse:
+    _ = current_user
+    return ProviderHealthResponse(
+        providers=[
+            ProviderHealthItem(
+                provider_id=item.provider_id,
+                ready=item.ready,
+                status=item.status,
+                detail=item.detail,
+                model_cache_dir=item.model_cache_dir,
+                optional_dependencies=item.optional_dependencies,
+            )
+            for item in provider_health(settings.model_cache_dir)
+        ]
+    )
 
 
 @app.get("/api/v1/providers/selection", response_model=ProviderSelectionResponse)

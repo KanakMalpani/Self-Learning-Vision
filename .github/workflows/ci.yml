@@ -37,6 +37,9 @@ jobs:
       - name: Install frontend
         working-directory: apps/web
         run: npm ci
+      - name: Lint frontend
+        working-directory: apps/web
+        run: npm run lint
       - name: Test frontend
         working-directory: apps/web
         run: npm test
@@ -46,6 +49,12 @@ jobs:
       - name: Build frontend
         working-directory: apps/web
         run: npm run build
+      - name: Install Playwright browser
+        working-directory: apps/web
+        run: npx playwright install --with-deps chromium
+      - name: Run Playwright smoke test
+        working-directory: apps/web
+        run: npm run test:e2e
 
   public-scan:
     runs-on: ubuntu-latest

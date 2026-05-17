@@ -1,0 +1,47 @@
+services:
+  db:
+    image: pgvector/pgvector:pg15
+
+  api:
+    build:
+      context: ./apps/api
+      args:
+        INSTALL_PRODUCTION_EXTRAS: "true"
+    environment:
+      MODEL_CACHE_DIR: ${MODEL_CACHE_DIR:-/app/data/models}
+      VECTOR_STORE: ${VECTOR_STORE:-pgvector}
+      JOB_BACKEND: ${JOB_BACKEND:-celery}
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
+    depends_on:
+      redis:
+        condition: service_started
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    profiles: ["production"]
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+
+  celery_worker:
+    build:
+      context: ./apps/api
+      args:
+        INSTALL_PRODUCTION_EXTRAS: "true"
+    restart: unless-stopped
+    profiles: ["production"]
+    command: ["celery", "-A", "app.core.celery_app:celery_app", "worker", "--loglevel=info"]
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-postgresql://postgres:postgres@db:5432/self_learning_vision}
+      STORAGE_DIR: ${STORAGE_DIR:-/app/data/uploads}
+      MODEL_CACHE_DIR: ${MODEL_CACHE_DIR:-/app/data/models}
+      VECTOR_STORE: ${VECTOR_STORE:-pgvector}
+      JOB_BACKEND: ${JOB_BACKEND:-celery}
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
+    volumes:
+      - ./data:/app/data
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started

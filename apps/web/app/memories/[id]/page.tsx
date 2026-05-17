@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { useParams } from "next/navigation";
 import ConfidenceLedgerPanel from "@/components/memory/ConfidenceLedgerPanel";
 import type { MemoryEntityDetailResponse } from "@/types/memory";
 import {
@@ -365,10 +366,23 @@ function MemoryDetailContent({ id }: { id: string }) {
   );
 }
 
-export default function MemoryDetailPage({ params }: { params: { id: string } }) {
+export default function MemoryDetailPage() {
+  const params = useParams<{ id: string }>();
+  const id = params?.id;
+
+  if (!id) {
+    return (
+      <ProtectedRoute>
+        <main className="max-w-5xl mx-auto px-4 py-8">
+          <section className="card p-4 text-gray-300">Missing memory id.</section>
+        </main>
+      </ProtectedRoute>
+    );
+  }
+
   return (
     <ProtectedRoute>
-      <MemoryDetailContent id={params.id} />
+      <MemoryDetailContent id={id} />
     </ProtectedRoute>
   );
 }

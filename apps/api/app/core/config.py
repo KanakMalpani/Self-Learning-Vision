@@ -14,6 +14,7 @@ class Settings(BaseSettings):
     database_url: str = "postgresql://postgres:postgres@localhost:5432/self_learning_vision"
     storage_dir: str = "./data/uploads"
     cors_origins: str = "http://localhost:3000"
+    model_cache_dir: str = "./data/models"
 
     jwt_secret: str = "change_me_before_public_deployments"
     jwt_algorithm: str = "HS256"
@@ -24,6 +25,9 @@ class Settings(BaseSettings):
     paid_provider_enabled: bool = False
     paid_provider_api_key: str = ""
     provider_plugin_dirs: str = ""
+    vector_store: str = "local_json"
+    job_backend: str = "inline"
+    redis_url: str = "redis://redis:6379/0"
     privacy_local_only_mode: bool = True
     privacy_allow_hosted_providers: bool = False
     face_quality_min_threshold: float = 0.40
@@ -37,7 +41,7 @@ class Settings(BaseSettings):
     unknown_cluster_similarity_threshold: float = 0.88
     unknown_cluster_familiarity_min_samples: int = 2
 
-    model_config = ConfigDict(env_file=".env", case_sensitive=False, extra="ignore")
+    model_config = ConfigDict(env_file=".env", case_sensitive=False, extra="ignore", protected_namespaces=())
 
     @property
     def cors_origin_list(self) -> List[str]:

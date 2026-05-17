@@ -24,9 +24,14 @@ services:
       AUTH_DEV_EMAIL: ${AUTH_DEV_EMAIL:-local-user@self-learning-vision.local}
       DATABASE_URL: ${DATABASE_URL:-postgresql://postgres:postgres@db:5432/self_learning_vision}
       STORAGE_DIR: ${STORAGE_DIR:-/app/data/uploads}
+      MODEL_CACHE_DIR: ${MODEL_CACHE_DIR:-/app/data/models}
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
       JWT_SECRET: ${JWT_SECRET:-change_me_before_public_deployments}
       ENABLE_FACE_MATCHING: ${ENABLE_FACE_MATCHING:-true}
+      EMBEDDING_PROVIDER: ${EMBEDDING_PROVIDER:-auto}
+      VECTOR_STORE: ${VECTOR_STORE:-local_json}
+      JOB_BACKEND: ${JOB_BACKEND:-inline}
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
       FACE_QUALITY_MIN_THRESHOLD: ${FACE_QUALITY_MIN_THRESHOLD:-0.40}
       RECOGNITION_ACCEPT_THRESHOLD: ${RECOGNITION_ACCEPT_THRESHOLD:-0.72}
       RECOGNITION_TENTATIVE_THRESHOLD: ${RECOGNITION_TENTATIVE_THRESHOLD:-0.50}
