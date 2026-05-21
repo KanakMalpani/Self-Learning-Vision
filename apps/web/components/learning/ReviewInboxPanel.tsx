@@ -320,7 +320,7 @@ export default function ReviewInboxPanel() {
                       <p className="mt-1 text-xs text-gray-500">{signal.signal_type} - {signal.risk_level}</p>
                     </div>
                     {signal.entity_id && (
-                      <Link href={`/memories/${signal.entity_id}`} className="rounded-md border border-white/10 px-3 py-1.5 text-sm text-gray-100">
+                      <Link href={`/memories/detail?id=${encodeURIComponent(signal.entity_id)}`} className="rounded-md border border-white/10 px-3 py-1.5 text-sm text-gray-100">
                         Open
                       </Link>
                     )}
@@ -352,7 +352,7 @@ export default function ReviewInboxPanel() {
                     </div>
                     <p className="mt-2 text-sm text-gray-400">{row.health.reasons.join(", ")}</p>
                     <div className="mt-3 flex flex-wrap gap-2">
-                      <Link href={`/memories/${row.entity.entity_id}`} className="rounded-md border border-white/10 px-3 py-1.5 text-sm text-gray-100">
+                      <Link href={`/memories/detail?id=${encodeURIComponent(row.entity.entity_id)}`} className="rounded-md border border-white/10 px-3 py-1.5 text-sm text-gray-100">
                         Open
                       </Link>
                       <button className="rounded-md bg-board-accent px-3 py-1.5 text-sm font-semibold text-black" onClick={() => void replay(row.entity.entity_id)}>

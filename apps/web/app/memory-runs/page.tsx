@@ -230,7 +230,7 @@ function MemoryRunsContent() {
         loading={loading}
         error={fetchError}
         onOpenMemoryRun={(memory_runId) => {
-          router.push(`/memory-runs/${memory_runId}`);
+          router.push(`/memory-runs/detail?id=${encodeURIComponent(memory_runId)}`);
         }}
         onRetry={() => {
           setLoading(true);

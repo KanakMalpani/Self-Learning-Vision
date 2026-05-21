@@ -845,3 +845,10 @@ export type MemoryRunRealtimeEventPayload = {
   session_id?: string | null;
   payload?: Record<string, unknown>;
 };
+
+export type ReadinessResponse = {
+  status: string;
+  dependencies: Record<string, boolean>;
+  optional_features: Record<string, unknown>;
+  diagnostics: Record<string, unknown>;
+};

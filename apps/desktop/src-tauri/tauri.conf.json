@@ -1,0 +1,46 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Self-Learning Vision",
+  "version": "0.3.0-alpha.1",
+  "identifier": "com.selflearningvision.desktop",
+  "build": {
+    "beforeBuildCommand": "cd ../web && npm run build:desktop",
+    "frontendDist": "../../web/out"
+  },
+  "app": {
+    "withGlobalTauri": true,
+    "windows": [
+      {
+        "title": "Self-Learning Vision",
+        "width": 1280,
+        "height": 860,
+        "minWidth": 960,
+        "minHeight": 700
+      }
+    ],
+    "security": {
+      "csp": null
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": ["nsis", "dmg", "appimage", "deb"],
+    "externalBin": ["../../api/dist/slv-api-sidecar"],
+    "publisher": "Self-Learning Vision contributors",
+    "shortDescription": "Local-first self-learning vision memory",
+    "longDescription": "A local-first visual memory app with review-gated learning, private storage, and explainable memory health.",
+    "windows": {
+      "nsis": {
+        "displayLanguageSelector": false
+      }
+    },
+    "macOS": {
+      "minimumSystemVersion": "12.0"
+    },
+    "linux": {
+      "deb": {
+        "depends": []
+      }
+    }
+  }
+}

@@ -766,3 +766,4 @@ class ReadinessResponse(BaseModel):
     status: str
     dependencies: dict[str, bool]
     optional_features: dict[str, object] = Field(default_factory=dict)
+    diagnostics: dict[str, object] = Field(default_factory=dict)

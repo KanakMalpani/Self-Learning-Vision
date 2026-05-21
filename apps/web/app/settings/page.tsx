@@ -1,13 +1,35 @@
 "use client";
 
-import { useState } from "react";
-import { exportUserData, purgeUserData } from "@/lib/api-client";
+import { useEffect, useState } from "react";
+import { exportUserData, fetchReadiness, purgeUserData } from "@/lib/api-client";
 import { ProtectedRoute } from "@/lib/protected-route";
+import { getRuntimeConfig, type RuntimeConfig } from "@/lib/runtime-config";
+import type { ReadinessResponse } from "@/types/memory";
 
 function SettingsContent() {
   const [exportPreview, setExportPreview] = useState<string>("");
   const [status, setStatus] = useState<string>("");
   const [purging, setPurging] = useState(false);
+  const [runtime, setRuntime] = useState<RuntimeConfig | null>(null);
+  const [readiness, setReadiness] = useState<ReadinessResponse | null>(null);
+
+  useEffect(() => {
+    let active = true;
+    async function loadRuntime() {
+      const config = await getRuntimeConfig();
+      if (!active) return;
+      setRuntime(config);
+      try {
+        setReadiness(await fetchReadiness());
+      } catch {
+        setReadiness(null);
+      }
+    }
+    void loadRuntime();
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const handleExport = async () => {
     setStatus("");
@@ -39,6 +61,31 @@ function SettingsContent() {
           Export or remove local memory for the current user. Embeddings are treated as private biometric data.
         </p>
       </header>
+
+      <section className="card p-5 space-y-4">
+        <div>
+          <p className="text-xs uppercase tracking-wide text-gray-400">Runtime</p>
+          <h2 className="text-xl font-semibold">Local Engine</h2>
+        </div>
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+          <div className="rounded-md border border-white/10 p-3 text-sm">
+            <p className="text-xs text-gray-500">API URL</p>
+            <p className="mt-1 break-all text-gray-100">{runtime?.apiBaseUrl || "Loading..."}</p>
+          </div>
+          <div className="rounded-md border border-white/10 p-3 text-sm">
+            <p className="text-xs text-gray-500">Data Directory</p>
+            <p className="mt-1 break-all text-gray-100">{runtime?.appDataDir || String(readiness?.diagnostics.storage_dir || "Configured backend")}</p>
+          </div>
+          <div className="rounded-md border border-white/10 p-3 text-sm">
+            <p className="text-xs text-gray-500">Database</p>
+            <p className="mt-1 text-gray-100">{runtime?.databaseMode || String(readiness?.diagnostics.database_url || "configured")}</p>
+          </div>
+          <div className="rounded-md border border-white/10 p-3 text-sm">
+            <p className="text-xs text-gray-500">Provider</p>
+            <p className="mt-1 text-gray-100">{runtime?.providerMode || String(readiness?.optional_features.embedding_provider || "auto")}</p>
+          </div>
+        </div>
+      </section>
 
       <section className="card p-5 space-y-4">
         <div className="flex flex-col gap-3 sm:flex-row">

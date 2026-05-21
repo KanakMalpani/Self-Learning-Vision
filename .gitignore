@@ -21,6 +21,9 @@ dist/
 npm-debug.log*
 yarn-debug.log*
 pnpm-debug.log*
+apps/desktop/node_modules/
+apps/desktop/src-tauri/target/
+apps/web/out/
 
 # Local app data and generated artifacts
 data/uploads/*
@@ -49,6 +52,8 @@ scripts/update_readme.py
 apps/api/full_test_output*.txt
 apps/api/test_results.txt
 apps/api/out.txt
+apps/api/build/
+apps/api/dist/
 apps/web/full_test_output*.txt
 apps/web/test_results.txt
 apps/web/out.txt

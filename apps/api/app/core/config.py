@@ -15,6 +15,8 @@ class Settings(BaseSettings):
     storage_dir: str = "./data/uploads"
     cors_origins: str = "http://localhost:3000"
     model_cache_dir: str = "./data/models"
+    desktop_mode: bool = False
+    desktop_app_data_dir: str = ""
 
     jwt_secret: str = "change_me_before_public_deployments"
     jwt_algorithm: str = "HS256"

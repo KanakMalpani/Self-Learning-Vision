@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { useParams, useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import MemoryReportPanel from "@/components/MemoryReportPanel";
 import ActivityFeed from "@/components/ActivityFeed";
 import { fetchMemoryRun } from "@/lib/api-client";
@@ -11,10 +11,10 @@ import { ProtectedRoute } from "@/lib/protected-route";
 import type { MemoryRunResponse } from "@/types/memory";
 
 function MemoryRunDetailContent() {
-  const params = useParams<{ id: string }>();
+  const searchParams = useSearchParams();
   const router = useRouter();
   const { logout } = useAuth();
-  const memory_runId = params?.id;
+  const memory_runId = searchParams.get("id");
 
   const [detail, setDetail] = useState<MemoryRunResponse | null>(null);
   const [error, setError] = useState<string | null>(null);

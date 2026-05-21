@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
+import DesktopEngineGate from "@/components/DesktopEngineGate";
 
 interface Props {
   children: ReactNode;
@@ -22,10 +23,11 @@ export default function AppShell({ children }: Props) {
   const isAuthRoute = pathname?.startsWith("/login") || pathname?.startsWith("/register");
 
   if (isAuthRoute) {
-    return <>{children}</>;
+    return <DesktopEngineGate>{children}</DesktopEngineGate>;
   }
 
   return (
+    <DesktopEngineGate>
     <div className="min-h-screen flex flex-col">
       <a href="#main" className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 focus:px-3 focus:py-2 focus:bg-white focus:text-black rounded-md shadow">
         Skip to content
@@ -71,6 +73,7 @@ export default function AppShell({ children }: Props) {
         {children}
       </main>
     </div>
+    </DesktopEngineGate>
   );
 }
 

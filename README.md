@@ -63,6 +63,16 @@ docker compose up --build
 4. Try uploading similar photos to see the system recognize the identity!
 5. Navigate to the **Review Inbox** to see passive learning signals and active-learning questions wait for your validation.
 
+## 📥 Download Desktop Alpha
+
+Unsigned alpha desktop installers are planned for GitHub Releases:
+
+- Windows x64 setup and portable zip
+- macOS Intel and Apple Silicon DMGs
+- Linux AppImage and Debian package
+
+The desktop app runs locally with a bundled FastAPI sidecar and SQLite, so users do not need Docker, Postgres, Node, or Python. See [Download Desktop Alpha](docs/download.md) for platform notes, unsigned-app warnings, data locations, and the advanced Docker path.
+
 ---
 
 ## 📊 The Local Learning Architecture
@@ -172,11 +182,12 @@ This workspace contains an extensive, state-of-the-art reference standard for en
 |---|---|---|
 | 📦 [First Five Minutes](docs/first-five-minutes.md) | 📐 [System Architecture](docs/architecture.md) | 🧩 [Provider Guide & APIs](docs/provider-guide.md) |
 | 🚀 [First Run Setup](docs/first-run.md) | 📂 [Memory Domain Models](docs/memory-domains.md) | 🔌 [Provider Marketplace](docs/provider-marketplace.md) |
-| 🎬 [Demo Script Walkthrough](docs/demo-walkthrough.md) | 🔄 [Memory Lifecycle States](docs/memory-lifecycle.md) | 📊 [Evaluation Dashboards](docs/evaluation-dashboard.md) |
+| 💻 [Download Desktop Alpha](docs/download.md) | 🔄 [Memory Lifecycle States](docs/memory-lifecycle.md) | 📊 [Evaluation Dashboards](docs/evaluation-dashboard.md) |
+| 🎬 [Demo Script Walkthrough](docs/demo-walkthrough.md) | 📦 [Production Upgrades](docs/v0.2-production-upgrades.md) | 📜 [Self-Learning Standards](docs/self-learning-vision-standard.md) |
 | 🧑‍💻 [Local Development Guide](docs/active-learning.md) | 🔒 [Local Privacy Guidelines](docs/privacy.md) | 📈 [Quality & Metric Toolkit](docs/memory-quality-toolkit.md) |
-| 📥 [Review Inbox Mechanics](docs/learning-review.md) | 📦 [Privacy Vault Controls](docs/privacy-vault.md) | 📜 [Self-Learning Standards](docs/self-learning-vision-standard.md) |
+| 📥 [Review Inbox Mechanics](docs/learning-review.md) | 📦 [Privacy Vault Controls](docs/privacy-vault.md) | 🧪 [Evaluation Methods](docs/evaluation.md) |
 | 🛠️ [Correction UX Details](docs/correction-ux.md) | 🗄️ [Data Access & Controls](docs/data-controls.md) | 🛡️ [Security Boundary Guidelines](SECURITY.md) |
-| 🆙 [Production Upgrades](docs/v0.2-production-upgrades.md) | 📋 [Deployment Checklist](docs/github-launch-checklist.md) | 🤝 [Contributing Guidelines](CONTRIBUTING.md) |
+| 🧰 [Demo Fixtures](docs/demo-fixtures.md) | 📋 [Deployment Checklist](docs/github-launch-checklist.md) | 🤝 [Contributing Guidelines](CONTRIBUTING.md) |
 
 ---
 

@@ -47,7 +47,7 @@ export default function MemorySearchPanel() {
           {result.results.map((item) => (
             <Link
               key={item.entity_id}
-              href={`/memories/${item.entity_id}`}
+              href={`/memories/detail?id=${encodeURIComponent(item.entity_id)}`}
               className="block rounded-md border border-white/10 p-3 hover:bg-white/5"
             >
               <div className="flex items-center justify-between gap-3">

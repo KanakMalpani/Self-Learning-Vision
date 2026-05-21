@@ -22,7 +22,7 @@ export default function MemoryEntityCard({
       <p className="mt-2 text-sm text-gray-400">{entity.lifecycle_state}</p>
       <div className="mt-3 flex flex-wrap gap-2">
         <Link
-          href={`/memories/${entity.entity_id}`}
+          href={`/memories/detail?id=${encodeURIComponent(entity.entity_id)}`}
           className="rounded-md border border-white/10 px-3 py-1.5 text-sm text-gray-100 hover:bg-white/10"
         >
           Details

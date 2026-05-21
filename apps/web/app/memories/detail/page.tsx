@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import ConfidenceLedgerPanel from "@/components/memory/ConfidenceLedgerPanel";
 import type { MemoryEntityDetailResponse } from "@/types/memory";
 import {
@@ -367,8 +367,8 @@ function MemoryDetailContent({ id }: { id: string }) {
 }
 
 export default function MemoryDetailPage() {
-  const params = useParams<{ id: string }>();
-  const id = params?.id;
+  const searchParams = useSearchParams();
+  const id = searchParams.get("id");
 
   if (!id) {
     return (

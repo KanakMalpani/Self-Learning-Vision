@@ -1,0 +1,20 @@
+[package]
+name = "self-learning-vision"
+version = "0.3.0-alpha.1"
+description = "Self-Learning Vision desktop alpha"
+authors = ["Self-Learning Vision contributors"]
+edition = "2021"
+license = "MIT"
+
+[lib]
+name = "self_learning_vision_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+tauri = { version = "2", features = [] }
+tauri-plugin-shell = "2"

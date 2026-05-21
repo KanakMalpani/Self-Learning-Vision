@@ -47,6 +47,7 @@ import type {
   MemorySearchResponse,
   PrivacySettingsItem,
   PrivacySettingsUpdateRequest,
+  ReadinessResponse,
   ProviderMarketplaceResponse,
   ProviderConformanceListResponse,
   ProviderPluginListResponse,
@@ -59,8 +60,8 @@ import type {
   VaultImportResponse,
 } from "@/types/memory";
 import { clearToken, getToken } from "./auth";
+import { getRuntimeConfig } from "./runtime-config";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
 const AUTH_ENABLED = process.env.NEXT_PUBLIC_AUTH_ENABLED === "true";
 
 export class ApiError extends Error {
@@ -75,13 +76,14 @@ export class ApiError extends Error {
 }
 
 async function fetchApi<T>(endpoint: string, options?: RequestInit): Promise<T> {
+  const runtime = await getRuntimeConfig();
   const token = AUTH_ENABLED ? getToken() : null;
   const headers: HeadersInit = token
     ? { ...options?.headers, Authorization: `Bearer ${token}` }
     : options?.headers || {};
 
   try {
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, { ...options, headers });
+    const response = await fetch(`${runtime.apiBaseUrl}${endpoint}`, { ...options, headers });
 
     if (response.status === 401) {
       if (AUTH_ENABLED) {
@@ -195,7 +197,8 @@ export function getMemoryRunStreamUrl(): string {
 
 export function getMemoryRunStreamUrlWithCursor(lastEventId?: string | null): string {
   const token = getToken();
-  const url = new URL(`${API_BASE_URL}/api/v1/memory-run-events/stream`);
+  const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
+  const url = new URL(`${baseUrl}/api/v1/memory-run-events/stream`);
   if (token) {
     url.searchParams.set("token", token);
   }
@@ -203,6 +206,29 @@ export function getMemoryRunStreamUrlWithCursor(lastEventId?: string | null): st
     url.searchParams.set("last_event_id", lastEventId);
   }
   return url.toString();
+}
+
+export async function getMemoryRunStreamUrlWithCursorAsync(lastEventId?: string | null): Promise<string> {
+  const token = getToken();
+  const runtime = await getRuntimeConfig();
+  const url = new URL(`${runtime.apiBaseUrl}/api/v1/memory-run-events/stream`);
+  if (token) {
+    url.searchParams.set("token", token);
+  }
+  if (lastEventId) {
+    url.searchParams.set("last_event_id", lastEventId);
+  }
+  return url.toString();
+}
+
+export async function fetchReadiness(): Promise<ReadinessResponse> {
+  const runtime = await getRuntimeConfig();
+  const response = await fetch(`${runtime.apiBaseUrl}/ready`, { method: "GET" });
+  const payload = (await response.json()) as ReadinessResponse;
+  if (!response.ok && !payload) {
+    throw new ApiError(`HTTP ${response.status}: ${response.statusText}`, response.status);
+  }
+  return payload;
 }
 
 export async function exportUserData(): Promise<Record<string, unknown>> {

@@ -12,6 +12,7 @@ export interface EventSourceLike {
 
 interface RealtimeOptions {
   streamUrl: string;
+  resolveStreamUrl?: (lastEventId?: string | null) => Promise<string> | string;
   onUpdate: (item: MemoryRunHistoryItem) => void;
   onEvent?: (eventType: MemoryRunRealtimeEventType, payload: MemoryRunRealtimeEventPayload) => void;
   onPollingTick: () => Promise<void> | void;
@@ -26,6 +27,7 @@ interface RealtimeOptions {
 export function startMemoryRunRealtime(options: RealtimeOptions): () => void {
   const {
     streamUrl,
+    resolveStreamUrl,
     onUpdate,
     onEvent,
     onPollingTick,
@@ -81,8 +83,12 @@ export function startMemoryRunRealtime(options: RealtimeOptions): () => void {
     };
   }
 
-  const connect = (baseUrl: string) => {
-    const resolvedUrl = lastEventId ? getMemoryRunStreamUrlWithCursor(lastEventId) : baseUrl;
+  const connect = async (baseUrl: string) => {
+    const resolvedUrl = resolveStreamUrl
+      ? await resolveStreamUrl(lastEventId)
+      : lastEventId
+        ? getMemoryRunStreamUrlWithCursor(lastEventId)
+        : baseUrl;
     source = eventSourceFactory(resolvedUrl);
     onModeChange?.("sse");
 
@@ -111,7 +117,7 @@ export function startMemoryRunRealtime(options: RealtimeOptions): () => void {
   };
 
   try {
-    connect(streamUrl);
+    void connect(streamUrl).catch(() => startPolling());
   } catch {
     startPolling();
   }
