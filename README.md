@@ -9,6 +9,7 @@
     <a href="LICENSE">
       <img src="https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge" alt="MIT License">
     </a>
+    <img src="https://img.shields.io/badge/Tauri-v2-FFC107?style=for-the-badge&logo=tauri&logoColor=white" alt="Tauri v2">
     <img src="https://img.shields.io/badge/Docker-Ready-2496ED?style=for-the-badge&logo=docker&logoColor=white" alt="Docker Ready">
     <img src="https://img.shields.io/badge/Backend-FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white" alt="FastAPI Backend">
     <img src="https://img.shields.io/badge/Frontend-Next.js-000000?style=for-the-badge&logo=nextdotjs&logoColor=white" alt="Next.js Frontend">
@@ -21,6 +22,8 @@
 
 Built around a **consent-forward learning loop**, the memory engine is expandable far beyond faces—serving as a modular foundation for learning about objects, places, scenes, events, and custom visual schemas you define.
 
+Now shipping with two primary deployments: a **native, lightweight desktop application (Windows Alpha verified)** powered by **Tauri v2** and **PyInstaller**, and a full-featured **Docker multi-container stack** for developers.
+
 > [!NOTE]
 > **Privacy-First Engineering:** All biometric embeddings, crop images, local databases, and generated reports run and live strictly on your local machine. They are ignored by version control by default. 🔒
 
@@ -32,7 +35,7 @@ Traditional face recognition systems rely on sweeping public database crawling, 
 
 | Feature / Property | Traditional Cloud Vision | Self-Learning Vision (This Engine) |
 |---|---|---|
-| **Data Residency** | Centralized cloud server (High exposure) | 100% Local (Docker or local filesystem boundary) |
+| **Data Residency** | Centralized cloud server (High exposure) | 100% Local (Docker or isolated native user app-data boundary) |
 | **Learning Trigger** | Automated background scraping & indexing | Consent-driven; user confirms familiar clusters |
 | **Privacy Safeguards** | Biometrics exposed to vendor APIs | Biometrics locked locally; vector-free redacted exports |
 | **AI Engine Neutrality** | Locked into proprietary APIs & subscriptions | Pluggable provider interface (Local default vs. Custom hosted) |
@@ -40,10 +43,49 @@ Traditional face recognition systems rely on sweeping public database crawling, 
 
 ---
 
-## 🚀 First Five Minutes
+## 📦 Choose Your Operational Path
 
-Get the entire multi-container environment running locally in under 60 seconds with Docker:
+Self-Learning Vision accommodates both lightweight offline consumers and multi-service developers:
 
+### 📱 Path A: Native Desktop App (Windows Alpha Live)
+*Designed for single-click local execution without setting up developer tools, containers, or environments.*
+* **Tauri v2 + FastAPI Sidecar:** The frontend is statically exported in Next.js and wrapped in a Tauri shell, launching an automatic, windowless local FastAPI backend frozen using **PyInstaller**.
+* **Zero Dependency:** SQLite backend automatically initialized locally. No Node.js, Python, Postgres, or Docker required!
+* **Platform Support:** 
+  * 🖥️ **Windows:** Locally verified and fully builds into native **NSIS Installers** (`.exe`) and portable zip files.
+  * 🍏 **macOS & 🐧 Linux:** Foundation in place with platform-specific CI workflows next.
+
+### 🐳 Path B: Full-Stack Docker Web Suite
+*Designed for developers, server environments, and database-intensive recognition services.*
+* **Enterprise Features:** Leverages PostgreSQL for relational structures, optional `pgvector` or complex local databases, and advanced providers (like InsightFace).
+* **Easy Spin Up:** Standard single-command multi-container docker compose setup.
+
+---
+
+## 🚀 Quick Start Guide
+
+### 📱 Setting Up the Native Desktop App (Locally or Installer)
+To install the verified Windows alpha:
+1. Download `Self-Learning-Vision-*-windows-x64-setup.exe` or the portable zip from the **GitHub Releases** page.
+2. Run the installer (bypass unsigned publisher warning by choosing *More Info* -> *Run Anyway*).
+3. The app opens instantly. The background sidecar auto-starts, binds exclusively to local loopback (`127.0.0.1`), redirects app logs, and verifies startup health via the `/ready` API.
+
+*To compile the native desktop app locally on Windows:*
+```bash
+# Make sure Node.js, Rust (rustup), and Python are on your PATH.
+cd apps/desktop
+
+# 1. Install desktop shell dependencies
+npm install
+
+# 2. Build the Tauri application (compiles Rust shell, statically exports Next.js, and bundles PyInstaller backend)
+npm run tauri build
+```
+*Locally generated installers will be saved in `apps/desktop/src-tauri/target/release/bundle/nsis/`.*
+
+---
+
+### 🐳 Setting Up the Docker Web Stack (In 60 Seconds)
 ```bash
 # 1. Clone & enter the workspace
 git clone https://github.com/KanakMalpani/Self-Learning-Vision.git
@@ -55,29 +97,14 @@ cp .env.example .env
 # 3. Spin up the containers
 docker compose up --build
 ```
-
-### 🎯 Your First Flight Checklist:
 1. Open **[http://localhost:3000](http://localhost:3000)** in your browser.
-2. Upload a sample image (e.g., family member, custom object).
-3. Select a detected visual entity, name it, and save the enrollment.
-4. Try uploading similar photos to see the system recognize the identity!
-5. Navigate to the **Review Inbox** to see passive learning signals and active-learning questions wait for your validation.
-
-## 📥 Download Desktop Alpha
-
-Unsigned alpha desktop installers are planned for GitHub Releases:
-
-- Windows x64 setup and portable zip
-- macOS Intel and Apple Silicon DMGs
-- Linux AppImage and Debian package
-
-The desktop app runs locally with a bundled FastAPI sidecar and SQLite, so users do not need Docker, Postgres, Node, or Python. See [Download Desktop Alpha](docs/download.md) for platform notes, unsigned-app warnings, data locations, and the advanced Docker path.
+2. Upload a sample image, select a detected face/object, name it, and save the enrollment.
+3. Try uploading similar photos to see the system recognize the identity!
+4. Navigate to the **Review Inbox** to see passive learning signals and active-learning questions wait for your validation.
 
 ---
 
-## 📊 The Local Learning Architecture
-
-Self-Learning Vision continuously refines its visual memory by processing matches, organizing unknowns, and verifying uncertainties through two beautifully integrated loops:
+## 📊 The Local Learning & Desktop Architecture
 
 ### A. The Consent-Forward Learning Loop
 
@@ -101,41 +128,42 @@ flowchart TD
     J --> D
 ```
 
-### B. Decoupled Modular Architecture
+### B. Tauri Native Desktop Architecture
 
 ```mermaid
-flowchart LR
-    subgraph Frontend [Next.js Web Interface]
-        UI[Interactive Dashboard]
-        Inbox[Review Inbox & Actions]
-        Configs[Learning Policy Controls]
+flowchart TB
+    subgraph DesktopShell [Tauri v2 Desktop Shell]
+        UI[Next.js Static UI]
+        Rust[Rust Core Shell Manager]
+        Icons[Tauri Native Window Assets]
     end
 
-    subgraph Backend [FastAPI API Service]
+    subgraph FastAPI_Sidecar [FastAPI Python Sidecar - Frozen via PyInstaller]
+        API[Uvicorn / FastAPI API Gateway]
+        Logs[Log Stream Redirection to App-Data]
+        Bcrypt[Bcrypt Cryptography Handlers]
         Core[Recognition Core Service]
-        Learning[Learning Signal Registry]
-        Active[Active Learning Engine]
-        Vault[Privacy Vault Controller]
     end
 
-    subgraph PluggableProviders [AI Vision Providers]
-        Local[MediaPipe / Local Engine]
-        Insight[InsightFace Provider]
-        Custom[BYO Hosted Engine]
+    subgraph Storage [Isolated Local Directory]
+        SQLite[(SQLite Database)]
+        JSON[(Local JSON Registries)]
+        Assets[(Temporary Image Crops)]
     end
 
-    subgraph LocalStorage [Isolated Flat File DB]
-        Identities[(Face References)]
-        Domains[(Memory Domains)]
-        Signals[(Redacted Signals)]
-        Unknowns[(Unknown Clusters)]
-    end
-
-    UI & Inbox --> Core
-    Configs --> Vault
-    Core --> PluggableProviders
-    Core --> LocalStorage
-    Learning & Active --> LocalStorage
+    UI <-->|Local Loopback HTTP / WS| API
+    Rust <-->|Manage Sidecar Lifecycle / ready checks| API
+    API --> Core
+    Core --> SQLite
+    Core --> JSON
+    Core --> Assets
+    
+    classDef tauri fill:#FFC107,stroke:#333,stroke-width:2px,color:#000;
+    classDef python fill:#009688,stroke:#333,stroke-width:2px,color:#fff;
+    classDef store fill:#607D8B,stroke:#333,stroke-width:2px,color:#fff;
+    class UI,Rust,Icons tauri;
+    class API,Logs,Bcrypt,Core python;
+    class SQLite,JSON,Assets store;
 ```
 
 ---
@@ -191,7 +219,7 @@ This workspace contains an extensive, state-of-the-art reference standard for en
 
 ---
 
-## 💻 Manual Setup & Local Development
+## 💻 Manual Setup & Local Development (Web Stack)
 
 For advanced local modifications outside of Docker:
 
