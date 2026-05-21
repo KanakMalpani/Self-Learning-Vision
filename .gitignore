@@ -23,6 +23,7 @@ yarn-debug.log*
 pnpm-debug.log*
 apps/desktop/node_modules/
 apps/desktop/src-tauri/target/
+apps/desktop/src-tauri/gen/
 apps/web/out/
 
 # Local app data and generated artifacts

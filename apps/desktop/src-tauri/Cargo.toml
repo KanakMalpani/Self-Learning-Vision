@@ -6,10 +6,6 @@ authors = ["Self-Learning Vision contributors"]
 edition = "2021"
 license = "MIT"
 
-[lib]
-name = "self_learning_vision_lib"
-crate-type = ["staticlib", "cdylib", "rlib"]
-
 [build-dependencies]
 tauri-build = { version = "2", features = [] }
 

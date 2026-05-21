@@ -5,12 +5,13 @@ from pathlib import Path
 import cv2
 
 block_cipher = None
-repo_root = Path.cwd()
+api_root = Path.cwd()
+repo_root = api_root.parents[1]
 opencv_data = Path(cv2.data.haarcascades)
 
 a = Analysis(
-    ["desktop_launcher.py"],
-    pathex=[str(repo_root)],
+    [str(api_root / "desktop_launcher.py")],
+    pathex=[str(api_root), str(repo_root)],
     binaries=[],
     datas=[(str(opencv_data), "cv2/data")],
     hiddenimports=[
@@ -19,6 +20,7 @@ a = Analysis(
         "app.api.auth",
         "app.services.face_detection",
         "app.services.recognition",
+        "passlib.handlers.bcrypt",
     ],
     hookspath=[],
     hooksconfig={},

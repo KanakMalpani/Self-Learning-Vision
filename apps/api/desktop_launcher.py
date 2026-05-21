@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import os
+import sys
 from pathlib import Path
 
 import uvicorn
@@ -45,6 +46,17 @@ def configure_desktop_environment(app_data_dir: str | Path, *, host: str) -> Pat
     return app_data
 
 
+def attach_desktop_streams(app_data: Path):
+    logs = app_data / "logs"
+    logs.mkdir(parents=True, exist_ok=True)
+    stream = (logs / "sidecar.log").open("a", encoding="utf-8", buffering=1)
+    if sys.stdout is None or getattr(sys.stdout, "closed", False):
+        sys.stdout = stream
+    if sys.stderr is None or getattr(sys.stderr, "closed", False):
+        sys.stderr = stream
+    return stream
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Run Self-Learning Vision as a local desktop sidecar.")
     parser.add_argument("--host", default="127.0.0.1")
@@ -53,10 +65,11 @@ def main() -> None:
     args = parser.parse_args()
 
     try:
-        configure_desktop_environment(args.app_data_dir, host=args.host)
+        app_data = configure_desktop_environment(args.app_data_dir, host=args.host)
     except ValueError as exc:
         raise SystemExit(str(exc)) from exc
 
+    _stream = attach_desktop_streams(app_data)
     uvicorn.run("app.main:app", host=args.host.strip(), port=args.port, log_level="info")
 
 
