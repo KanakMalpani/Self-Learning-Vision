@@ -63,5 +63,30 @@ describe("startMemoryRunRealtime", () => {
     expect(onModeChange).toHaveBeenCalledWith("polling");
     expect(onPollingTick).toHaveBeenCalled();
   });
+
+  it("resolves the desktop runtime stream URL before opening SSE", async () => {
+    const sourceFactory = vi.fn(() => ({
+      addEventListener: vi.fn(),
+      close: vi.fn(),
+    }));
+    const resolveStreamUrl = vi
+      .fn()
+      .mockResolvedValue("http://127.0.0.1:49152/api/v1/memory-run-events/stream");
+
+    startMemoryRunRealtime({
+      resolveStreamUrl,
+      onUpdate: vi.fn(),
+      onPollingTick: vi.fn(),
+      eventSourceFactory: sourceFactory,
+      hasEventSource: () => true,
+    });
+
+    await vi.waitFor(() => {
+      expect(sourceFactory).toHaveBeenCalledWith(
+        "http://127.0.0.1:49152/api/v1/memory-run-events/stream"
+      );
+    });
+    expect(resolveStreamUrl).toHaveBeenCalledWith(null);
+  });
 });
 

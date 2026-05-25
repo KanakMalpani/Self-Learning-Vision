@@ -9,6 +9,16 @@ export type RuntimeConfig = {
   desktopMode: boolean;
 };
 
+export type DesktopEngineStatus = {
+  status: "starting" | "ready" | "failed" | "stopped";
+  message: string;
+  detail?: string | null;
+  attempt: number;
+  maxAttempts: number;
+};
+
+type RuntimeConfigOptions = { refresh?: boolean };
+
 const fallbackConfig: RuntimeConfig = {
   apiBaseUrl: process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000",
   appVersion: process.env.NEXT_PUBLIC_APP_VERSION || "dev",
@@ -42,7 +52,12 @@ function normalizeConfig(payload: Partial<RuntimeConfig> | null | undefined): Ru
   };
 }
 
-export async function getRuntimeConfig(): Promise<RuntimeConfig> {
+export async function getRuntimeConfig(options: RuntimeConfigOptions = {}): Promise<RuntimeConfig> {
+  if (options.refresh) {
+    cachedConfig = null;
+    configPromise = null;
+  }
+
   if (cachedConfig) return cachedConfig;
   if (configPromise) return configPromise;
 
@@ -72,6 +87,31 @@ export async function getRuntimeConfig(): Promise<RuntimeConfig> {
   })();
 
   return configPromise;
+}
+
+export async function getDesktopEngineStatus(): Promise<DesktopEngineStatus | null> {
+  if (typeof window === "undefined") return null;
+  const invoke = window.__TAURI__?.core?.invoke;
+  if (!invoke) return null;
+  try {
+    return await invoke<DesktopEngineStatus>("get_engine_status");
+  } catch {
+    return null;
+  }
+}
+
+export async function restartDesktopEngine(): Promise<DesktopEngineStatus | null> {
+  if (typeof window === "undefined") return null;
+  const invoke = window.__TAURI__?.core?.invoke;
+  if (!invoke) return null;
+  try {
+    const status = await invoke<DesktopEngineStatus>("restart_local_engine");
+    cachedConfig = null;
+    configPromise = null;
+    return status;
+  } catch {
+    return null;
+  }
 }
 
 export function clearRuntimeConfigForTests(): void {

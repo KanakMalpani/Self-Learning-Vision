@@ -13,7 +13,7 @@ import UploadForm from "@/components/UploadForm";
 import ActivityFeed from "@/components/ActivityFeed";
 import Corkboard from "@/components/Corkboard";
 import MemoryReportPanel from "@/components/MemoryReportPanel";
-import { fetchMemoryRun, getMemoryRunStreamUrl, getMemoryRunStreamUrlWithCursorAsync } from "@/lib/api-client";
+import { fetchMemoryRun, getMemoryRunStreamUrlWithCursor } from "@/lib/api-client";
 import { startMemoryRunRealtime } from "@/lib/memory-run-realtime";
 import { useAuth } from "@/lib/auth-context";
 import { AUTH_ENABLED } from "@/lib/auth-mode";
@@ -74,8 +74,7 @@ function HomeContent() {
   useEffect(() => {
     setRealtimeStatus("connecting");
     const stop = startMemoryRunRealtime({
-      streamUrl: getMemoryRunStreamUrl(),
-      resolveStreamUrl: getMemoryRunStreamUrlWithCursorAsync,
+      resolveStreamUrl: getMemoryRunStreamUrlWithCursor,
       onUpdate: (update) => {
         if (update.memory_run_id === memory_runId) {
           void fetchMemoryRun(update.memory_run_id)

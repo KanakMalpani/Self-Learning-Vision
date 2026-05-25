@@ -191,24 +191,11 @@ export async function fetchMemoryRunHistory(
   });
 }
 
-export function getMemoryRunStreamUrl(): string {
+export async function getMemoryRunStreamUrl(): Promise<string> {
   return getMemoryRunStreamUrlWithCursor();
 }
 
-export function getMemoryRunStreamUrlWithCursor(lastEventId?: string | null): string {
-  const token = getToken();
-  const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
-  const url = new URL(`${baseUrl}/api/v1/memory-run-events/stream`);
-  if (token) {
-    url.searchParams.set("token", token);
-  }
-  if (lastEventId) {
-    url.searchParams.set("last_event_id", lastEventId);
-  }
-  return url.toString();
-}
-
-export async function getMemoryRunStreamUrlWithCursorAsync(lastEventId?: string | null): Promise<string> {
+export async function getMemoryRunStreamUrlWithCursor(lastEventId?: string | null): Promise<string> {
   const token = getToken();
   const runtime = await getRuntimeConfig();
   const url = new URL(`${runtime.apiBaseUrl}/api/v1/memory-run-events/stream`);
@@ -221,8 +208,12 @@ export async function getMemoryRunStreamUrlWithCursorAsync(lastEventId?: string 
   return url.toString();
 }
 
-export async function fetchReadiness(): Promise<ReadinessResponse> {
-  const runtime = await getRuntimeConfig();
+export async function getMemoryRunStreamUrlWithCursorAsync(lastEventId?: string | null): Promise<string> {
+  return getMemoryRunStreamUrlWithCursor(lastEventId);
+}
+
+export async function fetchReadiness(refreshRuntime = false): Promise<ReadinessResponse> {
+  const runtime = await getRuntimeConfig({ refresh: refreshRuntime });
   const response = await fetch(`${runtime.apiBaseUrl}/ready`, { method: "GET" });
   const payload = (await response.json()) as ReadinessResponse;
   if (!response.ok && !payload) {

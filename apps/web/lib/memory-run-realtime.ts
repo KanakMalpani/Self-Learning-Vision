@@ -11,7 +11,7 @@ export interface EventSourceLike {
 }
 
 interface RealtimeOptions {
-  streamUrl: string;
+  streamUrl?: string;
   resolveStreamUrl?: (lastEventId?: string | null) => Promise<string> | string;
   onUpdate: (item: MemoryRunHistoryItem) => void;
   onEvent?: (eventType: MemoryRunRealtimeEventType, payload: MemoryRunRealtimeEventPayload) => void;
@@ -83,12 +83,12 @@ export function startMemoryRunRealtime(options: RealtimeOptions): () => void {
     };
   }
 
-  const connect = async (baseUrl: string) => {
+  const connect = async () => {
     const resolvedUrl = resolveStreamUrl
       ? await resolveStreamUrl(lastEventId)
       : lastEventId
-        ? getMemoryRunStreamUrlWithCursor(lastEventId)
-        : baseUrl;
+        ? await getMemoryRunStreamUrlWithCursor(lastEventId)
+        : streamUrl || await getMemoryRunStreamUrlWithCursor();
     source = eventSourceFactory(resolvedUrl);
     onModeChange?.("sse");
 
@@ -117,7 +117,7 @@ export function startMemoryRunRealtime(options: RealtimeOptions): () => void {
   };
 
   try {
-    void connect(streamUrl).catch(() => startPolling());
+    void connect().catch(() => startPolling());
   } catch {
     startPolling();
   }

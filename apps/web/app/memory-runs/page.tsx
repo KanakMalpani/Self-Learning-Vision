@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import MemoryRunHistoryTable from "@/components/MemoryRunHistoryTable";
 import {
   fetchMemoryRunHistory,
-  getMemoryRunStreamUrl,
+  getMemoryRunStreamUrlWithCursor,
   ApiError,
 } from "@/lib/api-client";
 import {
@@ -105,7 +105,7 @@ function MemoryRunsContent() {
 
   useEffect(() => {
     const stop = startMemoryRunRealtime({
-      streamUrl: getMemoryRunStreamUrl(),
+      resolveStreamUrl: getMemoryRunStreamUrlWithCursor,
       onUpdate: (update) => {
         setItems((current) => mergeMemoryRunUpdate(current, update));
         setLastUpdated(new Date().toISOString());

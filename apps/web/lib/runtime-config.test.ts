@@ -1,5 +1,10 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { clearRuntimeConfigForTests, getRuntimeConfig } from "@/lib/runtime-config";
+import {
+  clearRuntimeConfigForTests,
+  getDesktopEngineStatus,
+  getRuntimeConfig,
+  restartDesktopEngine,
+} from "@/lib/runtime-config";
 
 describe("runtime config", () => {
   afterEach(() => {
@@ -31,5 +36,35 @@ describe("runtime config", () => {
       providerMode: "local",
       desktopMode: true,
     });
+  });
+
+  it("refreshes a changed desktop sidecar URL", async () => {
+    const invoke = vi
+      .fn()
+      .mockResolvedValueOnce({ apiBaseUrl: "http://127.0.0.1:49152", desktopMode: true })
+      .mockResolvedValueOnce({ apiBaseUrl: "http://127.0.0.1:49153", desktopMode: true });
+    window.__TAURI__ = { core: { invoke } };
+
+    await expect(getRuntimeConfig()).resolves.toMatchObject({ apiBaseUrl: "http://127.0.0.1:49152" });
+    await expect(getRuntimeConfig({ refresh: true })).resolves.toMatchObject({
+      apiBaseUrl: "http://127.0.0.1:49153",
+    });
+  });
+
+  it("exposes desktop engine status and restart commands", async () => {
+    const invoke = vi.fn().mockImplementation((command: string) =>
+      Promise.resolve({
+        status: command === "restart_local_engine" ? "starting" : "ready",
+        message: "Local engine ready.",
+        attempt: 1,
+        maxAttempts: 3,
+      })
+    );
+    window.__TAURI__ = { core: { invoke } };
+
+    await expect(getDesktopEngineStatus()).resolves.toMatchObject({ status: "ready" });
+    await expect(restartDesktopEngine()).resolves.toMatchObject({ status: "starting" });
+    expect(invoke).toHaveBeenCalledWith("get_engine_status");
+    expect(invoke).toHaveBeenCalledWith("restart_local_engine");
   });
 });

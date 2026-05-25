@@ -2,10 +2,15 @@ from __future__ import annotations
 
 import argparse
 import os
+import re
 import sys
 from pathlib import Path
+from typing import TextIO
 
 import uvicorn
+
+MAX_LOG_BYTES = 1_000_000
+MAX_LOG_BACKUPS = 2
 
 
 def _sqlite_url(path: Path) -> str:
@@ -46,10 +51,87 @@ def configure_desktop_environment(app_data_dir: str | Path, *, host: str) -> Pat
     return app_data
 
 
-def attach_desktop_streams(app_data: Path):
+class DesktopLogStream:
+    def __init__(
+        self,
+        log_path: Path,
+        *,
+        app_data: Path,
+        max_bytes: int = MAX_LOG_BYTES,
+        backups: int = MAX_LOG_BACKUPS,
+    ) -> None:
+        self.log_path = log_path
+        self.app_data = str(app_data)
+        self.max_bytes = max_bytes
+        self.backups = backups
+        self._stream: TextIO = self.log_path.open("a", encoding="utf-8", buffering=1)
+
+    def _sanitize(self, message: str) -> str:
+        sanitized = message.replace(self.app_data, "<app-data>")
+        sanitized = re.sub(
+            r"(?i)(authorization:\s*bearer\s+)\S+",
+            r"\1[redacted]",
+            sanitized,
+        )
+        return re.sub(
+            r"(?i)(token|api[_-]?key|secret)=([^&\s]+)",
+            r"\1=[redacted]",
+            sanitized,
+        )
+
+    def _rotate(self) -> None:
+        self._stream.close()
+        if self.backups:
+            oldest = self.log_path.with_name(f"{self.log_path.name}.{self.backups}")
+            oldest.unlink(missing_ok=True)
+            for number in range(self.backups - 1, 0, -1):
+                source = self.log_path.with_name(f"{self.log_path.name}.{number}")
+                if source.exists():
+                    source.replace(self.log_path.with_name(f"{self.log_path.name}.{number + 1}"))
+            if self.log_path.exists():
+                self.log_path.replace(self.log_path.with_name(f"{self.log_path.name}.1"))
+        else:
+            self.log_path.unlink(missing_ok=True)
+        self._stream = self.log_path.open("a", encoding="utf-8", buffering=1)
+
+    def write(self, message: str) -> int:
+        sanitized = self._sanitize(message)
+        encoded = sanitized.encode("utf-8")
+        if len(encoded) > self.max_bytes:
+            sanitized = encoded[-self.max_bytes :].decode("utf-8", errors="replace")
+            encoded = sanitized.encode("utf-8")
+        if self.log_path.exists() and self.log_path.stat().st_size + len(encoded) > self.max_bytes:
+            self._rotate()
+        return self._stream.write(sanitized)
+
+    def flush(self) -> None:
+        self._stream.flush()
+
+    def close(self) -> None:
+        self._stream.close()
+
+    @property
+    def closed(self) -> bool:
+        return self._stream.closed
+
+    def isatty(self) -> bool:
+        return False
+
+
+def attach_desktop_streams(
+    app_data: Path,
+    *,
+    max_bytes: int = MAX_LOG_BYTES,
+    backups: int = MAX_LOG_BACKUPS,
+) -> DesktopLogStream:
     logs = app_data / "logs"
     logs.mkdir(parents=True, exist_ok=True)
-    stream = (logs / "sidecar.log").open("a", encoding="utf-8", buffering=1)
+    stream = DesktopLogStream(
+        logs / "sidecar.log",
+        app_data=app_data,
+        max_bytes=max_bytes,
+        backups=backups,
+    )
     if sys.stdout is None or getattr(sys.stdout, "closed", False):
         sys.stdout = stream
     if sys.stderr is None or getattr(sys.stderr, "closed", False):
@@ -70,7 +152,13 @@ def main() -> None:
         raise SystemExit(str(exc)) from exc
 
     _stream = attach_desktop_streams(app_data)
-    uvicorn.run("app.main:app", host=args.host.strip(), port=args.port, log_level="info")
+    uvicorn.run(
+        "app.main:app",
+        host=args.host.strip(),
+        port=args.port,
+        log_level="info",
+        access_log=False,
+    )
 
 
 if __name__ == "__main__":

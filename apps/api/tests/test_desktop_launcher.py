@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from desktop_launcher import configure_desktop_environment
+from desktop_launcher import attach_desktop_streams, configure_desktop_environment
 
 
 def test_desktop_launcher_sets_local_only_environment(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -45,3 +45,23 @@ def test_desktop_launcher_sets_local_only_environment(tmp_path: Path, monkeypatc
 def test_desktop_launcher_rejects_lan_binding(tmp_path: Path) -> None:
     with pytest.raises(ValueError):
         configure_desktop_environment(tmp_path, host="0.0.0.0")
+
+
+def test_desktop_logs_rotate_and_redact_local_sensitive_values(tmp_path: Path) -> None:
+    app_data = tmp_path / "Self-Learning Vision"
+    stream = attach_desktop_streams(app_data, max_bytes=72, backups=2)
+    try:
+        stream.write(f"upload={app_data / 'uploads' / 'private-face.png'} token=abc123\n")
+        stream.write("second diagnostic line that causes bounded rotation safely\n")
+        stream.flush()
+    finally:
+        stream.close()
+
+    logs = sorted((app_data / "logs").glob("sidecar.log*"))
+    content = "".join(path.read_text(encoding="utf-8") for path in logs)
+    assert len(logs) <= 3
+    assert all(path.stat().st_size <= 72 for path in logs)
+    assert str(app_data) not in content
+    assert "abc123" not in content
+    assert "<app-data>" in content
+    assert "token=[redacted]" in content
