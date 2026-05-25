@@ -4,28 +4,44 @@ updates:
     directory: /apps/api
     schedule:
       interval: monthly
-    open-pull-requests-limit: 5
+    open-pull-requests-limit: 0
+    groups:
+      python-security-updates:
+        applies-to: security-updates
+        patterns:
+          - "*"
 
   - package-ecosystem: npm
-    directory: /apps/web
+    directories:
+      - /apps/web
+      - /apps/desktop
     schedule:
       interval: monthly
-    open-pull-requests-limit: 5
-
-  - package-ecosystem: npm
-    directory: /apps/desktop
-    schedule:
-      interval: monthly
-    open-pull-requests-limit: 5
+    open-pull-requests-limit: 0
+    groups:
+      javascript-security-updates:
+        applies-to: security-updates
+        patterns:
+          - "*"
 
   - package-ecosystem: cargo
     directory: /apps/desktop/src-tauri
     schedule:
       interval: monthly
-    open-pull-requests-limit: 5
+    open-pull-requests-limit: 0
+    groups:
+      rust-security-updates:
+        applies-to: security-updates
+        patterns:
+          - "*"
 
   - package-ecosystem: github-actions
     directory: /
     schedule:
       interval: monthly
-    open-pull-requests-limit: 5
+    open-pull-requests-limit: 0
+    groups:
+      action-security-updates:
+        applies-to: security-updates
+        patterns:
+          - "*"

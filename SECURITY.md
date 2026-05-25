@@ -48,6 +48,6 @@ The public release is intended for personal/local memory, demos, and research. I
 ## Repository Security Automation
 
 - CodeQL scans the Python API, JavaScript/TypeScript web app, and Rust desktop shell on pull requests, pushes to `main`, and a weekly schedule.
-- Dependabot checks Python, npm, Cargo, and GitHub Actions dependencies monthly so updates can be reviewed through normal pull requests.
+- Dependabot groups security-update pull requests for Python, npm, Cargo, and GitHub Actions dependencies; routine version upgrades remain deliberate maintainer work during the alpha.
 - Desktop release artifacts are built on their native operating systems and pass frozen-sidecar and public-safety gates before publication.
 - Maintainers should enable GitHub private vulnerability reporting for the public repository before publishing installers.
