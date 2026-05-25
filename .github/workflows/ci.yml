@@ -64,7 +64,7 @@ jobs:
         with:
           python-version: "3.12"
       - name: Test release artifact tooling
-        run: python -m unittest discover -s scripts/tests -p "test_*.py"
+        run: python -B -m unittest discover -s scripts/tests -p "test_*.py"
       - name: Scan for release artifacts
         run: |
           artifacts="$(find . \( -name "*.env" -o -name "*.db" -o -name "*.sqlite" -o -name "*.npy" -o -name "*.pyc" -o -name "*.log" \) -print)"
