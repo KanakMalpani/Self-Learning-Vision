@@ -3,5 +3,5 @@ asyncpg==0.29.0
 celery==5.4.0
 redis==5.0.4
 pgvector==0.2.5
-insightface==0.7.3
+insightface==1.0.1
 onnxruntime==1.18.0
