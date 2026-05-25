@@ -43,9 +43,9 @@ jobs:
             sidecar_target: linux-x64
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
           cache: pip
@@ -75,7 +75,7 @@ jobs:
       - name: Smoke-test native frozen sidecar
         run: python scripts/smoke_desktop_sidecar.py --target ${{ matrix.sidecar_target }}
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
           node-version: "20"
           cache: npm
@@ -119,7 +119,7 @@ jobs:
         run: python scripts/release_artifacts.py validate-platform --platform ${{ matrix.artifact_slug }} --directory artifacts/desktop
 
       - name: Upload desktop artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: self-learning-vision-${{ matrix.artifact_slug }}
           path: artifacts/desktop/*
@@ -132,13 +132,13 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
 
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           path: release-artifacts
           merge-multiple: true
