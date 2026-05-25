@@ -22,7 +22,7 @@
 
 Built around a **consent-forward learning loop**, the memory engine is expandable far beyond faces—serving as a modular foundation for learning about objects, places, scenes, events, and custom visual schemas you define.
 
-Now shipping with two primary deployments: a **native, lightweight desktop application (Windows Alpha verified)** powered by **Tauri v2** and **PyInstaller**, and a full-featured **Docker multi-container stack** for developers.
+Now shipping with two primary deployments: a native, ultra-lightweight **Cross-Platform Desktop Application (Windows, macOS, and Linux Alpha verified)** powered by **Tauri v2** and **PyInstaller**, and a full-featured **Docker multi-container stack** for developers.
 
 > [!NOTE]
 > **Privacy-First Engineering:** All biometric embeddings, crop images, local databases, and generated reports run and live strictly on your local machine. They are ignored by version control by default. 🔒
@@ -47,14 +47,17 @@ Traditional face recognition systems rely on sweeping public database crawling, 
 
 Self-Learning Vision accommodates both lightweight offline consumers and multi-service developers:
 
-### 📱 Path A: Native Desktop App (Windows Alpha Live)
+### 📱 Path A: Cross-Platform Native Desktop App (Alpha Live)
 *Designed for single-click local execution without setting up developer tools, containers, or environments.*
-* **Tauri v2 + FastAPI Sidecar:** The frontend is statically exported in Next.js and wrapped in a Tauri shell, launching an automatic, windowless local FastAPI backend frozen using **PyInstaller**.
-* **Zero Dependency:** SQLite backend automatically initialized locally. No Node.js, Python, Postgres, or Docker required!
-* **Platform Support:**
-  * 🖥️ **Windows:** Native **NSIS installer** (`.exe`) and portable zip packaging, with local build verification.
-  * 🍏 **macOS:** Intel and Apple Silicon DMG packaging configured for CI verification.
-  * 🐧 **Linux:** AppImage and Debian package generation configured for CI verification.
+* **Tauri v2 + FastAPI Sidecar:** The Next.js frontend is compiled as a static desktop UI and wrapped inside a hardened Tauri shell, launching an automatic, windowless local FastAPI backend frozen using **PyInstaller**.
+* **Zero Dependency:** Built-in SQLite database automatically initialized locally. No Node.js, Python, Postgres, or Docker required!
+* **Robust Lifecycle & Security:** 
+  * Features a **per-launch shutdown token** shared from the Tauri shell to Uvicorn on startup, preventing orphaned background processes by terminating the sidecar backend cleanly when the application window closes.
+  * Hardened Tauri content security policy (CSP) and tightly restricted system permissions.
+* **Platform Packaging:** 
+  * 🪟 **Windows:** Native NSIS Installer (`.exe`) and portable ZIP packaging.
+  * 🍏 **macOS:** Intel and Apple Silicon DMG installers.
+  * 🐧 **Linux:** Lightweight AppImage and Debian (`.deb`) installers.
 
 ### 🐳 Path B: Full-Stack Docker Web Suite
 *Designed for developers, server environments, and database-intensive recognition services.*
@@ -65,26 +68,34 @@ Self-Learning Vision accommodates both lightweight offline consumers and multi-s
 
 ## 🚀 Quick Start Guide
 
-### 📱 Setting Up the Native Desktop App (Locally or Installer)
-To install the verified Windows alpha:
-1. Download `Self-Learning-Vision-*-windows-x64-setup.exe` or the portable zip from the **GitHub Releases** page.
-2. Run the installer (bypass unsigned publisher warning by choosing *More Info* -> *Run Anyway*).
+### 📱 Running the Native Desktop App (Locally or Installer)
+To install the verified alpha:
+1. Download the installer for your OS from the **GitHub Releases** page:
+   * **Windows:** `Self-Learning-Vision-*-windows-x64-setup.exe` (or portable ZIP)
+   * **macOS:** `Self-Learning-Vision-*-macos-x64.dmg` (Intel) or `*-macos-arm64.dmg` (Apple Silicon)
+   * **Linux:** `Self-Learning-Vision-*-linux-x64.AppImage` (or `.deb` package)
+2. Run the installer (bypass unsigned publisher warning by choosing *More Info* -> *Run Anyway* / Open).
 3. The app opens instantly. The background sidecar auto-starts, binds exclusively to local loopback (`127.0.0.1`), redirects app logs, and verifies startup health via the `/ready` API.
 
-*To compile the native desktop app locally on Windows:*
+*To compile the native desktop app locally:*
 ```bash
-# Install the desktop Python dependencies before packaging the sidecar.
+# Make sure Node.js, Rust (rustup), and Python are on your PATH.
+# 1. Install desktop Python dependencies before packaging the sidecar
 python -m pip install -r apps/api/requirements-desktop.txt -c apps/api/constraints.txt
-python scripts/build_desktop_sidecar.py --target windows-x64
 
+# 2. Build the PyInstaller backend sidecar (auto-detects host OS)
+python scripts/build_desktop_sidecar.py --target windows-x64  # Or macos-x64, macos-arm64, linux-x64
+
+# 3. Enter desktop directory and compile the Tauri app
 cd apps/desktop
 npm install
 npm run build
 
+# 4. Stage and validate the generated native packages
 cd ../..
 python scripts/stage_desktop_artifacts.py --platform windows-x64
 ```
-*Named public-ready packages will be saved in `artifacts/desktop/`.*
+*Platform-specific config files (`tauri.windows.conf.json`, `tauri.macos.conf.json`, `tauri.linux.conf.json`) are automatically invoked during builds.*
 
 ---
 
@@ -139,6 +150,7 @@ flowchart TB
         UI[Next.js Static UI]
         Rust[Rust Core Shell Manager]
         Icons[Tauri Native Window Assets]
+        CSP[Hardened Content Security Policy]
     end
 
     subgraph FastAPI_Sidecar [FastAPI Python Sidecar - Frozen via PyInstaller]
@@ -146,6 +158,7 @@ flowchart TB
         Logs[Log Stream Redirection to App-Data]
         Bcrypt[Bcrypt Cryptography Handlers]
         Core[Recognition Core Service]
+        Shutdown[Clean Shutdown Listener / Token Verify]
     end
 
     subgraph Storage [Isolated Local Directory]
@@ -155,7 +168,8 @@ flowchart TB
     end
 
     UI <-->|Local Loopback HTTP / WS| API
-    Rust <-->|Manage Sidecar Lifecycle / ready checks| API
+    Rust <-->|Manage Sidecar Lifecycle & /ready health checks| API
+    Rust -.->|Send Clean Shutdown Token on Window Close| Shutdown
     API --> Core
     Core --> SQLite
     Core --> JSON
@@ -164,10 +178,26 @@ flowchart TB
     classDef tauri fill:#FFC107,stroke:#333,stroke-width:2px,color:#000;
     classDef python fill:#009688,stroke:#333,stroke-width:2px,color:#fff;
     classDef store fill:#607D8B,stroke:#333,stroke-width:2px,color:#fff;
-    class UI,Rust,Icons tauri;
-    class API,Logs,Bcrypt,Core python;
+    class UI,Rust,Icons,CSP tauri;
+    class API,Logs,Bcrypt,Core,Shutdown python;
     class SQLite,JSON,Assets store;
 ```
+
+---
+
+## 🚀 CI/CD Release Automation & Security Hardening
+
+Self-Learning Vision features a enterprise-grade automation and security ecosystem:
+
+* **Automated Binary Pipeline (`desktop-release.yml`):** Cross-platform GitHub Actions build native application packages in isolated runners for Windows, macOS (Intel & Apple Silicon), and Linux on tag releases.
+* **Rigorous Verification Suite:**
+  * `stage_desktop_artifacts.py` & `release_artifacts.py` audit generated outputs to guarantee tag/version agreement, valid ZIP directories, correct platform files, and compute cryptographic SHA256 checksums.
+  * `smoke_desktop_sidecar.py` performs a headless runtime smoke-test of the frozen PyInstaller FastAPI sidecar to verify sidecar initialization.
+  * First-run startup and Review Inbox dashboard flows are continuously verified using Playwright.
+* **Continuous Security Scans:**
+  * **CodeQL Automated Scanning (`codeql.yml`):** Runs deep security reviews for Python, JavaScript/TypeScript, and Rust.
+  * **Dependabot Integration:** Keeps dependencies updated automatically across Python, Cargo, npm, and GitHub Actions, with workflows modernized to Node 24.
+  * **Private Vulnerability Reporting:** Enabled directly on the public repository for responsible disclosure.
 
 ---
 
@@ -213,7 +243,7 @@ This workspace contains an extensive, state-of-the-art reference standard for en
 |---|---|---|
 | 📦 [First Five Minutes](docs/first-five-minutes.md) | 📐 [System Architecture](docs/architecture.md) | 🧩 [Provider Guide & APIs](docs/provider-guide.md) |
 | 🚀 [First Run Setup](docs/first-run.md) | 📂 [Memory Domain Models](docs/memory-domains.md) | 🔌 [Provider Marketplace](docs/provider-marketplace.md) |
-| 💻 [Download Desktop Alpha](docs/download.md) | 📦 [Desktop Release Checklist](docs/desktop-release-checklist.md) | 📊 [Evaluation Dashboards](docs/evaluation-dashboard.md) |
+| 💻 [Download Desktop Alpha](docs/download.md) | 📋 [Desktop Release Checklist](docs/desktop-release-checklist.md) | 📊 [Evaluation Dashboards](docs/evaluation-dashboard.md) |
 | 🪟 [Windows Install](docs/install/windows.md) | 🍏 [macOS Install](docs/install/macos.md) | 🐧 [Linux Install](docs/install/linux.md) |
 | 🎬 [Demo Script Walkthrough](docs/demo-walkthrough.md) | 🔄 [Memory Lifecycle States](docs/memory-lifecycle.md) | 📜 [Self-Learning Standards](docs/self-learning-vision-standard.md) |
 | 🧑‍💻 [Local Development Guide](docs/active-learning.md) | 🔒 [Local Privacy Guidelines](docs/privacy.md) | 📈 [Quality & Metric Toolkit](docs/memory-quality-toolkit.md) |
