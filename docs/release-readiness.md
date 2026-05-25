@@ -19,7 +19,7 @@ Use this checklist before making the repository public.
 - Evaluation docs and `/evaluation` define matching, clustering, provider scorecards, quality, and privacy checks.
 - Frontend CI runs tests, typecheck, and production build.
 - CodeQL scans the Python API, web application, and Rust desktop shell.
-- Dependabot monitors Python, npm, Cargo, and GitHub Actions dependencies.
+- Dependabot groups security updates for Python, npm, Cargo, and GitHub Actions dependencies without opening routine alpha version-bump noise.
 - Data export and purge endpoints exist for local memory control.
 - SQLite developer mode is documented for zero-config local API work.
 
