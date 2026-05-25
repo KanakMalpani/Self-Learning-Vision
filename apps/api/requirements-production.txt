@@ -1,7 +1,7 @@
 # Optional production extras. The default app does not require these packages.
 asyncpg==0.29.0
 celery==5.4.0
-redis==5.0.4
+redis==7.4.0
 pgvector==0.2.5
 insightface==0.7.3
 onnxruntime==1.18.0
