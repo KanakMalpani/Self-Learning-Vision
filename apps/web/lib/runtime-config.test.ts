@@ -24,7 +24,7 @@ describe("runtime config", () => {
   it("uses injected desktop config when available", async () => {
     window.__SLV_RUNTIME_CONFIG__ = {
       apiBaseUrl: "http://127.0.0.1:49152/",
-      appDataDir: "C:/Users/demo/AppData/Roaming/Self-Learning Vision",
+      appDataDir: "/app-data/com.selflearningvision.desktop",
       databaseMode: "sqlite",
       providerMode: "local",
       desktopMode: true,

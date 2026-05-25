@@ -8,6 +8,7 @@ use std::time::{Duration, Instant};
 use tauri::{AppHandle, Manager, State};
 use tauri_plugin_shell::process::{CommandChild, CommandEvent};
 use tauri_plugin_shell::ShellExt;
+use uuid::Uuid;
 
 const MAX_START_ATTEMPTS: u8 = 3;
 const READINESS_TIMEOUT: Duration = Duration::from_secs(10);
@@ -36,7 +37,7 @@ struct EngineStatus {
 struct DesktopState {
     config: Mutex<RuntimeConfig>,
     engine: Mutex<EngineStatus>,
-    sidecar: Mutex<Option<(u64, CommandChild)>>,
+    sidecar: Mutex<Option<(u64, u16, String, CommandChild)>>,
     generation: Mutex<u64>,
     app_data_dir: String,
 }
@@ -89,11 +90,30 @@ fn set_api_base_url(app: &AppHandle, generation: u64, url: String) {
     }
 }
 
+fn request_sidecar_shutdown(port: u16, token: &str) {
+    let address = SocketAddr::from(([127, 0, 0, 1], port));
+    let Ok(mut stream) = TcpStream::connect_timeout(&address, Duration::from_millis(250)) else {
+        return;
+    };
+    let _ = stream.set_write_timeout(Some(Duration::from_millis(250)));
+    let request = format!(
+        "POST /desktop/shutdown HTTP/1.1\r\nHost: 127.0.0.1\r\nx-desktop-shutdown-token: {token}\r\nContent-Length: 0\r\nConnection: close\r\n\r\n"
+    );
+    if stream.write_all(request.as_bytes()).is_ok() {
+        thread::sleep(Duration::from_millis(250));
+    }
+}
+
+fn stop_sidecar(port: u16, token: String, child: CommandChild) {
+    request_sidecar_shutdown(port, &token);
+    let _ = child.kill();
+}
+
 fn kill_generation_sidecar(app: &AppHandle, generation: u64) {
     if let Ok(mut sidecar) = app.state::<DesktopState>().sidecar.lock() {
-        if sidecar.as_ref().map(|(id, _)| *id) == Some(generation) {
-            if let Some((_, child)) = sidecar.take() {
-                let _ = child.kill();
+        if sidecar.as_ref().map(|(id, _, _, _)| *id) == Some(generation) {
+            if let Some((_, port, token, child)) = sidecar.take() {
+                stop_sidecar(port, token, child);
             }
         }
     }
@@ -101,8 +121,8 @@ fn kill_generation_sidecar(app: &AppHandle, generation: u64) {
 
 fn kill_all_sidecars(app: &AppHandle) {
     if let Ok(mut sidecar) = app.state::<DesktopState>().sidecar.lock() {
-        if let Some((_, child)) = sidecar.take() {
-            let _ = child.kill();
+        if let Some((_, port, token, child)) = sidecar.take() {
+            stop_sidecar(port, token, child);
         }
     }
 }
@@ -167,6 +187,7 @@ fn begin_engine_start(app: AppHandle) -> EngineStatus {
                 }
             };
             let api_base_url = format!("http://127.0.0.1:{port}");
+            let shutdown_token = Uuid::new_v4().to_string();
             set_api_base_url(&app, generation, api_base_url);
             set_status(
                 &app,
@@ -193,6 +214,8 @@ fn begin_engine_start(app: AppHandle) -> EngineStatus {
                             &port.to_string(),
                             "--app-data-dir",
                             &app_data_dir,
+                            "--shutdown-token",
+                            &shutdown_token,
                         ])
                         .spawn()
                         .map_err(|error| format!("could not start bundled API ({error})"))
@@ -210,7 +233,7 @@ fn begin_engine_start(app: AppHandle) -> EngineStatus {
                 return;
             }
             if let Ok(mut current) = app.state::<DesktopState>().sidecar.lock() {
-                *current = Some((generation, child));
+                *current = Some((generation, port, shutdown_token, child));
             }
 
             let started_at = Instant::now();

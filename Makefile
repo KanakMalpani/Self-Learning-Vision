@@ -2,7 +2,7 @@ SHELL := /bin/sh
 
 PYTHON ?= python
 
-.PHONY: install install-api install-web fmt-api lint-api test-api test-web typecheck-web build-web build-web-desktop test verify scan-public demo-fixtures dev-api dev-api-sqlite dev-web docker-up docker-down docker-rebuild clean-local
+.PHONY: install install-api install-web fmt-api lint-api test-api test-web test-release-tools typecheck-web build-web build-web-desktop test verify smoke-desktop-sidecar verify-desktop-release scan-public demo-fixtures dev-api dev-api-sqlite dev-web docker-up docker-down docker-rebuild clean-local
 
 install: install-api install-web
 
@@ -24,6 +24,9 @@ test-api:
 test-web:
 	cd apps/web && npm test
 
+test-release-tools:
+	$(PYTHON) -m unittest discover -s scripts/tests -p "test_*.py"
+
 typecheck-web:
 	cd apps/web && npm run typecheck
 
@@ -33,9 +36,16 @@ build-web:
 build-web-desktop:
 	cd apps/web && npm run build:desktop
 
-test: test-api test-web
+test: test-api test-web test-release-tools
 
-verify: test-api test-web typecheck-web scan-public
+verify: test-api test-web test-release-tools typecheck-web scan-public
+
+smoke-desktop-sidecar:
+	$(PYTHON) scripts/smoke_desktop_sidecar.py --target $(DESKTOP_TARGET)
+
+verify-desktop-release:
+	$(PYTHON) scripts/release_artifacts.py validate-release --directory artifacts/desktop
+	$(PYTHON) scripts/release_artifacts.py checksums --directory artifacts/desktop
 
 demo-fixtures:
 	cd apps/api && $(PYTHON) scripts/create_demo_fixtures.py

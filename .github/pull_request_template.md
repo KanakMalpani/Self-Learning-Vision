@@ -8,6 +8,8 @@ Describe the change and why it belongs in Self-Learning Vision.
 - [ ] Frontend
 - [ ] Learning system
 - [ ] Provider integration
+- [ ] Desktop packaging/runtime
+- [ ] Release automation/security
 - [ ] Documentation
 - [ ] Tests
 
@@ -17,6 +19,9 @@ Describe the change and why it belongs in Self-Learning Vision.
 - [ ] Frontend tests pass.
 - [ ] Frontend typecheck passes.
 - [ ] Frontend build passes, if UI changed.
+- [ ] Release tooling tests pass, if packaging or release files changed.
+- [ ] Native frozen-sidecar smoke test passes, if desktop packaging/runtime changed.
+- [ ] Platform installation docs are updated, if artifact behavior changed.
 - [ ] Public-safety scan reviewed.
 
 ## Public-Safety Checklist
@@ -30,4 +35,3 @@ Describe the change and why it belongs in Self-Learning Vision.
 ## Screenshots
 
 Add public-safe screenshots for UI changes when useful.
-

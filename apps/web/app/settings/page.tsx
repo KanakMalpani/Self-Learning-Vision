@@ -73,7 +73,7 @@ function SettingsContent() {
             <p className="mt-1 break-all text-gray-100">{runtime?.apiBaseUrl || "Loading..."}</p>
           </div>
           <div className="rounded-md border border-white/10 p-3 text-sm">
-            <p className="text-xs text-gray-500">Data Directory</p>
+            <p className="text-xs text-gray-500">{runtime?.desktopMode ? "Desktop App Data Directory" : "Data Directory"}</p>
             <p className="mt-1 break-all text-gray-100">{runtime?.appDataDir || String(readiness?.diagnostics.storage_dir || "Configured backend")}</p>
           </div>
           <div className="rounded-md border border-white/10 p-3 text-sm">
@@ -83,6 +83,16 @@ function SettingsContent() {
           <div className="rounded-md border border-white/10 p-3 text-sm">
             <p className="text-xs text-gray-500">Provider</p>
             <p className="mt-1 text-gray-100">{runtime?.providerMode || String(readiness?.optional_features.embedding_provider || "auto")}</p>
+          </div>
+          <div className="rounded-md border border-white/10 p-3 text-sm">
+            <p className="text-xs text-gray-500">Privacy Mode</p>
+            <p className="mt-1 text-gray-100">
+              {readiness?.dependencies.privacy_local_only ? "Local only" : "Configured backend policy"}
+            </p>
+          </div>
+          <div className="rounded-md border border-white/10 p-3 text-sm">
+            <p className="text-xs text-gray-500">Desktop Network Binding</p>
+            <p className="mt-1 text-gray-100">{runtime?.desktopMode ? "Loopback only (127.0.0.1)" : "Configured backend"}</p>
           </div>
         </div>
       </section>
