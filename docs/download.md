@@ -17,9 +17,17 @@ Download artifacts from GitHub Releases:
 
 Use `SHA256SUMS.txt` from the release page to verify downloads.
 
+Detailed installation instructions:
+
+- [Windows installer and portable build](install/windows.md)
+- [macOS Intel and Apple Silicon](install/macos.md)
+- [Linux AppImage and Debian/Ubuntu](install/linux.md)
+
 ## Windows
 
-Run the setup `.exe`. Windows SmartScreen may say the publisher is unknown because the alpha is unsigned. Choose the portable `.zip` if you cannot run installers on your machine.
+Run the setup `.exe`. Windows SmartScreen may say the publisher is unknown because the alpha is unsigned. The setup package includes Microsoft's WebView2 bootstrapper so that it can install the UI runtime if your machine needs it.
+
+Choose the portable `.zip` if you cannot run installers. Extract the whole folder and run `Self-Learning Vision.exe`; keep its included sidecar executable beside it. The portable build uses an already-installed Microsoft Edge WebView2 Runtime.
 
 ## macOS
 
@@ -54,11 +62,13 @@ The desktop alpha does not bundle Postgres, Redis, Celery, pgvector, InsightFace
 
 The desktop app stores user data outside the installed application:
 
-- Windows: `%APPDATA%/Self-Learning Vision`
-- macOS: `~/Library/Application Support/Self-Learning Vision`
-- Linux: `$XDG_DATA_HOME/self-learning-vision` or `~/.local/share/self-learning-vision`
+- Windows: `%APPDATA%/com.selflearningvision.desktop`
+- macOS: `~/Library/Application Support/com.selflearningvision.desktop`
+- Linux: `$XDG_DATA_HOME/com.selflearningvision.desktop` or `~/.local/share/com.selflearningvision.desktop`
 
 Use the Settings page to export or purge local memory. Deleting the app does not necessarily delete this data folder.
+
+The Settings page displays the exact app-data directory selected by the running desktop app.
 
 ## Advanced Docker Path
 
@@ -76,3 +86,6 @@ docker compose up --build
 - No Android/iOS app.
 - Desktop app binds the backend only to `127.0.0.1`.
 - Desktop alpha uses lightweight local dependencies for packaging stability.
+- Windows portable builds require WebView2 to be present or installed separately.
+- macOS and Linux downloads are release-ready only after their native automated
+  engine checks and manual application smoke tests succeed.

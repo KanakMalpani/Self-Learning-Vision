@@ -9,8 +9,8 @@ jobs:
   backend:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
           cache: pip
@@ -28,8 +28,8 @@ jobs:
   frontend:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
         with:
           node-version: "20"
           cache: npm
@@ -59,7 +59,12 @@ jobs:
   public-scan:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - name: Test release artifact tooling
+        run: python -B -m unittest discover -s scripts/tests -p "test_*.py"
       - name: Scan for release artifacts
         run: |
           artifacts="$(find . \( -name "*.env" -o -name "*.db" -o -name "*.sqlite" -o -name "*.npy" -o -name "*.pyc" -o -name "*.log" \) -print)"
@@ -70,4 +75,4 @@ jobs:
       - name: Scan for obvious secrets
         run: |
           pattern='s[k]-[A-Za-z0-9]|AI[z]a|g[h]p_|github_[p]at|BEGIN (RSA|OPENSSH|PRIVATE)|[A-Z0-9_]+_API[_]KEY[[:space:]]*='
-          ! grep -RInE "$pattern" . --exclude-dir=.git --exclude=package-lock.json
+          ! grep -RInE "$pattern" . --exclude-dir=.git --exclude=package-lock.json --exclude=.env.example

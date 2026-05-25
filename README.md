@@ -51,9 +51,10 @@ Self-Learning Vision accommodates both lightweight offline consumers and multi-s
 *Designed for single-click local execution without setting up developer tools, containers, or environments.*
 * **Tauri v2 + FastAPI Sidecar:** The frontend is statically exported in Next.js and wrapped in a Tauri shell, launching an automatic, windowless local FastAPI backend frozen using **PyInstaller**.
 * **Zero Dependency:** SQLite backend automatically initialized locally. No Node.js, Python, Postgres, or Docker required!
-* **Platform Support:** 
-  * 🖥️ **Windows:** Locally verified and fully builds into native **NSIS Installers** (`.exe`) and portable zip files.
-  * 🍏 **macOS & 🐧 Linux:** Foundation in place with platform-specific CI workflows next.
+* **Platform Support:**
+  * 🖥️ **Windows:** Native **NSIS installer** (`.exe`) and portable zip packaging, with local build verification.
+  * 🍏 **macOS:** Intel and Apple Silicon DMG packaging configured for CI verification.
+  * 🐧 **Linux:** AppImage and Debian package generation configured for CI verification.
 
 ### 🐳 Path B: Full-Stack Docker Web Suite
 *Designed for developers, server environments, and database-intensive recognition services.*
@@ -72,16 +73,18 @@ To install the verified Windows alpha:
 
 *To compile the native desktop app locally on Windows:*
 ```bash
-# Make sure Node.js, Rust (rustup), and Python are on your PATH.
+# Install the desktop Python dependencies before packaging the sidecar.
+python -m pip install -r apps/api/requirements-desktop.txt -c apps/api/constraints.txt
+python scripts/build_desktop_sidecar.py --target windows-x64
+
 cd apps/desktop
-
-# 1. Install desktop shell dependencies
 npm install
+npm run build
 
-# 2. Build the Tauri application (compiles Rust shell, statically exports Next.js, and bundles PyInstaller backend)
-npm run tauri build
+cd ../..
+python scripts/stage_desktop_artifacts.py --platform windows-x64
 ```
-*Locally generated installers will be saved in `apps/desktop/src-tauri/target/release/bundle/nsis/`.*
+*Named public-ready packages will be saved in `artifacts/desktop/`.*
 
 ---
 
@@ -210,8 +213,9 @@ This workspace contains an extensive, state-of-the-art reference standard for en
 |---|---|---|
 | 📦 [First Five Minutes](docs/first-five-minutes.md) | 📐 [System Architecture](docs/architecture.md) | 🧩 [Provider Guide & APIs](docs/provider-guide.md) |
 | 🚀 [First Run Setup](docs/first-run.md) | 📂 [Memory Domain Models](docs/memory-domains.md) | 🔌 [Provider Marketplace](docs/provider-marketplace.md) |
-| 💻 [Download Desktop Alpha](docs/download.md) | 🔄 [Memory Lifecycle States](docs/memory-lifecycle.md) | 📊 [Evaluation Dashboards](docs/evaluation-dashboard.md) |
-| 🎬 [Demo Script Walkthrough](docs/demo-walkthrough.md) | 📦 [Production Upgrades](docs/v0.2-production-upgrades.md) | 📜 [Self-Learning Standards](docs/self-learning-vision-standard.md) |
+| 💻 [Download Desktop Alpha](docs/download.md) | 📦 [Desktop Release Checklist](docs/desktop-release-checklist.md) | 📊 [Evaluation Dashboards](docs/evaluation-dashboard.md) |
+| 🪟 [Windows Install](docs/install/windows.md) | 🍏 [macOS Install](docs/install/macos.md) | 🐧 [Linux Install](docs/install/linux.md) |
+| 🎬 [Demo Script Walkthrough](docs/demo-walkthrough.md) | 🔄 [Memory Lifecycle States](docs/memory-lifecycle.md) | 📜 [Self-Learning Standards](docs/self-learning-vision-standard.md) |
 | 🧑‍💻 [Local Development Guide](docs/active-learning.md) | 🔒 [Local Privacy Guidelines](docs/privacy.md) | 📈 [Quality & Metric Toolkit](docs/memory-quality-toolkit.md) |
 | 📥 [Review Inbox Mechanics](docs/learning-review.md) | 📦 [Privacy Vault Controls](docs/privacy-vault.md) | 🧪 [Evaluation Methods](docs/evaluation.md) |
 | 🛠️ [Correction UX Details](docs/correction-ux.md) | 🗄️ [Data Access & Controls](docs/data-controls.md) | 🛡️ [Security Boundary Guidelines](SECURITY.md) |

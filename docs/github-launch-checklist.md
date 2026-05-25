@@ -41,6 +41,9 @@ make scan-public
 
 Also inspect `git status --short --ignored` before the first public push.
 
+For desktop alpha installers and portable packages, follow the
+[Desktop Release Checklist](desktop-release-checklist.md) before creating a tag.
+
 ## First Release
 
 Suggested release title:
@@ -62,4 +65,3 @@ Initial public release of Self-Learning Vision.
 - Provider-neutral architecture with local/free default path and optional hosted provider hooks.
 - Data export, encrypted vault export/import, purge controls, and public-safety documentation.
 ```
-

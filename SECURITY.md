@@ -32,6 +32,22 @@ Please report:
 - Review provider documentation before sending images to a hosted API.
 - Use `GET /api/v1/data/export` and `DELETE /api/v1/data/purge` to inspect or remove local user memory.
 
+## Desktop Security Boundary
+
+- The desktop sidecar binds only to `127.0.0.1` and does not expose a LAN listener by default.
+- Desktop releases keep hosted providers disabled, use SQLite, `local_json`, and inline learning jobs by default.
+- The desktop webview can call the bundled app commands but does not receive shell execution or process-spawn permission.
+- The desktop content security policy permits backend connections only to the loopback API and Tauri IPC transport, while blocking embedded objects and external framing.
+- The desktop-only shutdown route requires a per-launch native token so frozen sidecars exit with the app.
+- Desktop user data lives under the Tauri app-data directory for `com.selflearningvision.desktop`, outside the installed application bundle.
+
 ## Supported Release Boundary
 
 The public release is intended for personal/local memory, demos, and research. It is not intended for surveillance, public identity lookup, or high-stakes decisions.
+
+## Repository Security Automation
+
+- CodeQL scans the Python API, JavaScript/TypeScript web app, and Rust desktop shell on pull requests, pushes to `main`, and a weekly schedule.
+- Dependabot checks Python, npm, Cargo, and GitHub Actions dependencies monthly so updates can be reviewed through normal pull requests.
+- Desktop release artifacts are built on their native operating systems and pass frozen-sidecar and public-safety gates before publication.
+- Maintainers should enable GitHub private vulnerability reporting for the public repository before publishing installers.

@@ -2,12 +2,25 @@ name: Desktop Alpha Release
 
 on:
   workflow_dispatch:
+  pull_request:
+    paths:
+      - ".github/workflows/desktop-release.yml"
+      - "apps/api/**"
+      - "apps/desktop/**"
+      - "apps/web/**"
+      - "docs/download.md"
+      - "docs/install/**"
+      - "scripts/**"
   push:
     tags:
       - "v*-alpha.*"
 
+concurrency:
+  group: desktop-alpha-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   build:
@@ -30,9 +43,9 @@ jobs:
             sidecar_target: linux-x64
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
           cache: pip
@@ -45,6 +58,13 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r apps/api/requirements-desktop.txt -c apps/api/constraints.txt
 
+      - name: Verify tag matches packaged desktop version
+        if: startsWith(github.ref, 'refs/tags/')
+        run: python scripts/release_artifacts.py verify-tag --tag "${{ github.ref_name }}"
+
+      - name: Test release artifact tooling
+        run: python -m unittest discover -s scripts/tests -p "test_*.py"
+
       - name: Run backend tests
         working-directory: apps/api
         run: pytest -q --basetemp .pytest_tmp
@@ -52,7 +72,10 @@ jobs:
       - name: Build API sidecar
         run: python scripts/build_desktop_sidecar.py --target ${{ matrix.sidecar_target }}
 
-      - uses: actions/setup-node@v4
+      - name: Smoke-test native frozen sidecar
+        run: python scripts/smoke_desktop_sidecar.py --target ${{ matrix.sidecar_target }}
+
+      - uses: actions/setup-node@v6
         with:
           node-version: "20"
           cache: npm
@@ -89,36 +112,42 @@ jobs:
         working-directory: apps/desktop
         run: npm run build
 
-      - name: Scan artifact staging
-        shell: bash
-        run: |
-          if find apps/desktop/src-tauri/target/release/bundle \
-            \( -name "*.env" -o -name "*.db" -o -name "*.sqlite" -o -name "*.log" -o -name "*.pyc" \) \
-            -print | grep .; then
-            echo "Unsafe artifact content detected"
-            exit 1
-          fi
+      - name: Stage named release artifacts
+        run: python scripts/stage_desktop_artifacts.py --platform ${{ matrix.artifact_slug }}
+
+      - name: Validate staged release artifacts
+        run: python scripts/release_artifacts.py validate-platform --platform ${{ matrix.artifact_slug }} --directory artifacts/desktop
 
       - name: Upload desktop artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: self-learning-vision-${{ matrix.artifact_slug }}
-          path: apps/desktop/src-tauri/target/release/bundle/**
+          path: artifacts/desktop/*
           if-no-files-found: error
 
   release:
     needs: build
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/')
+    permissions:
+      contents: write
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - uses: actions/download-artifact@v8
         with:
           path: release-artifacts
+          merge-multiple: true
+
+      - name: Validate complete release set
+        run: python scripts/release_artifacts.py validate-release --directory release-artifacts
 
       - name: Generate checksums
-        run: |
-          cd release-artifacts
-          find . -type f -print0 | sort -z | xargs -0 sha256sum > SHA256SUMS.txt
+        run: python scripts/release_artifacts.py checksums --directory release-artifacts
 
       - name: Publish GitHub Release
         uses: softprops/action-gh-release@v2
@@ -129,6 +158,8 @@ jobs:
             Unsigned desktop alpha for Self-Learning Vision.
 
             Windows and macOS may show unknown-publisher warnings because this alpha is not code-signed yet.
+            The Windows setup installer includes the WebView2 bootstrapper. The Windows portable ZIP requires WebView2 already installed.
+            Desktop data remains local in the operating system app-data directory.
             Verify downloads with SHA256SUMS.txt.
           files: |
-            release-artifacts/**
+            release-artifacts/*

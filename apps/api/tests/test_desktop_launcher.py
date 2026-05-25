@@ -1,11 +1,18 @@
 from __future__ import annotations
 
 import os
+import time
 from pathlib import Path
 
 import pytest
+from fastapi import FastAPI
+from fastapi.testclient import TestClient
 
-from desktop_launcher import attach_desktop_streams, configure_desktop_environment
+from desktop_launcher import (
+    add_desktop_shutdown_route,
+    attach_desktop_streams,
+    configure_desktop_environment,
+)
 
 
 def test_desktop_launcher_sets_local_only_environment(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -65,3 +72,26 @@ def test_desktop_logs_rotate_and_redact_local_sensitive_values(tmp_path: Path) -
     assert "abc123" not in content
     assert "<app-data>" in content
     assert "token=[redacted]" in content
+
+
+def test_desktop_shutdown_requires_native_token() -> None:
+    stopped: list[bool] = []
+    app = add_desktop_shutdown_route(
+        FastAPI(),
+        "native-token",
+        shutdown_callback=lambda: stopped.append(True),
+    )
+    client = TestClient(app)
+
+    assert client.post("/desktop/shutdown").status_code == 403
+    response = client.post(
+        "/desktop/shutdown",
+        headers={"x-desktop-shutdown-token": "native-token"},
+    )
+
+    assert response.json() == {"status": "stopping"}
+    for _ in range(10):
+        if stopped:
+            break
+        time.sleep(0.02)
+    assert stopped == [True]

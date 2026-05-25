@@ -3,11 +3,14 @@ from __future__ import annotations
 import argparse
 import os
 import re
+import secrets
 import sys
+import threading
 from pathlib import Path
-from typing import TextIO
+from typing import Callable, TextIO
 
 import uvicorn
+from fastapi import FastAPI, Header, HTTPException
 
 MAX_LOG_BYTES = 1_000_000
 MAX_LOG_BACKUPS = 2
@@ -139,11 +142,34 @@ def attach_desktop_streams(
     return stream
 
 
+def add_desktop_shutdown_route(
+    app: FastAPI,
+    shutdown_token: str,
+    *,
+    shutdown_callback: Callable[[], None] | None = None,
+) -> FastAPI:
+    stop_process = shutdown_callback or (lambda: os._exit(0))
+
+    @app.post("/desktop/shutdown", include_in_schema=False)
+    def desktop_shutdown(
+        x_desktop_shutdown_token: str | None = Header(default=None),
+    ) -> dict[str, str]:
+        if not x_desktop_shutdown_token or not secrets.compare_digest(
+            x_desktop_shutdown_token, shutdown_token
+        ):
+            raise HTTPException(status_code=403, detail="Invalid desktop shutdown token.")
+        threading.Timer(0.1, stop_process).start()
+        return {"status": "stopping"}
+
+    return app
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Run Self-Learning Vision as a local desktop sidecar.")
     parser.add_argument("--host", default="127.0.0.1")
     parser.add_argument("--port", type=int, required=True)
     parser.add_argument("--app-data-dir", required=True)
+    parser.add_argument("--shutdown-token", required=True)
     args = parser.parse_args()
 
     try:
@@ -152,8 +178,10 @@ def main() -> None:
         raise SystemExit(str(exc)) from exc
 
     _stream = attach_desktop_streams(app_data)
+    from app.main import app
+
     uvicorn.run(
-        "app.main:app",
+        add_desktop_shutdown_route(app, args.shutdown_token),
         host=args.host.strip(),
         port=args.port,
         log_level="info",
