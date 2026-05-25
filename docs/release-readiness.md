@@ -83,3 +83,12 @@ Expected local URLs:
 - Follow [GitHub Launch Checklist](github-launch-checklist.md) before the first public push.
 - Follow [Desktop Release Checklist](desktop-release-checklist.md) before publishing desktop installers.
 - Enable GitHub private vulnerability reporting before distributing public desktop downloads.
+
+## Tracked Linux Alpha Advisory
+
+- The Linux Tauri dependency tree currently inherits `glib 0.18.5` through
+  Tauri's GTK3 dependency (`gtk 0.18.2`). GitHub reports an advisory fixed in
+  `glib 0.20.0`, but Cargo cannot select that version while GTK requires
+  `glib ^0.18`.
+- Keep this alert open and reassess it before publishing Linux downloads or
+  when the Tauri/GTK dependency chain offers a compatible patched release.
