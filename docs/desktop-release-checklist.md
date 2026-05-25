@@ -48,6 +48,9 @@ git status --short --ignored
    local-first.
 7. In repository security settings, enable private vulnerability reporting
    before sharing desktop installers publicly.
+8. Review open Dependabot alerts. Do not publish Linux downloads while the
+   tracked transitive `glib` advisory remains unresolved without an explicit
+   release decision.
 
 ## Build And Publication
 
