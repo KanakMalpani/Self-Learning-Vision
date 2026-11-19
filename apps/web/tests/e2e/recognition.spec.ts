@@ -75,7 +75,7 @@ test.beforeEach(async ({ page }) => {
 
 test("first-run recognition flow and Review Inbox shell are usable", async ({ page }) => {
   await page.goto("/");
-  await expect(page.getByRole("heading", { name: "Self-Learning Vision" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Remember a face" })).toBeVisible();
 
   await page.locator('input[type="file"]').setInputFiles({
     name: "synthetic-demo.png",
