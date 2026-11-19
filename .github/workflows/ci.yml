@@ -26,7 +26,8 @@ jobs:
         run: pytest -q
 
   frontend:
-    runs-on: ubuntu-latest
+    # ubuntu-latest is 26.04, and Playwright 1.60 cannot install Chromium there.
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-node@v6

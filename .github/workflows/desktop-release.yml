@@ -67,7 +67,11 @@ jobs:
 
       - name: Run backend tests
         working-directory: apps/api
-        run: pytest -q --basetemp .pytest_tmp
+        env:
+          DATABASE_URL: sqlite:///./data/ci-desktop.db
+        run: |
+          mkdir -p data
+          pytest -q --basetemp .pytest_tmp
 
       - name: Build API sidecar
         run: python scripts/build_desktop_sidecar.py --target ${{ matrix.sidecar_target }}
