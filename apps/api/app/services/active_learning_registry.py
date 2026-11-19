@@ -8,7 +8,6 @@ from pathlib import Path
 from typing import Any, Literal
 from uuid import uuid4
 
-
 QuestionStatus = Literal["pending", "answered", "dismissed"]
 QuestionType = Literal["confirm_match", "label_unknown_cluster", "review_memory"]
 
@@ -64,7 +63,9 @@ class ActiveLearningRegistry:
         if status:
             normalized = self._normalize_status(status)
             records = [record for record in records if record.status == normalized]
-        return sorted(records, key=lambda item: (item.status != "pending", -item.priority, item.created_at))
+        return sorted(
+            records, key=lambda item: (item.status != "pending", -item.priority, item.created_at)
+        )
 
     def pending_count(self) -> int:
         return len(self.list_questions("pending"))
@@ -303,6 +304,8 @@ class ActiveLearningRegistry:
         return clean
 
     def _normalize_domain(self, value: str) -> str:
-        normalized = "".join(char if char.isalnum() or char in {"_", "-"} else "_" for char in value.lower())
+        normalized = "".join(
+            char if char.isalnum() or char in {"_", "-"} else "_" for char in value.lower()
+        )
         normalized = normalized.strip("_-")
         return normalized or "custom"

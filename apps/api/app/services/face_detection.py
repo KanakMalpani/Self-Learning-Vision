@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import List, Optional
 
 try:
     import cv2
@@ -24,10 +23,10 @@ from app.schemas.api import FaceBox
 class FaceDetectionService:
     def __init__(self, min_detection_confidence: float = 0.5):
         self.min_detection_confidence = min_detection_confidence
-        self._detector: Optional[object] = None
-        self._detector_mode: Optional[str] = None
+        self._detector: object | None = None
+        self._detector_mode: str | None = None
 
-    def detect_faces(self, image_path: str) -> List[FaceBox]:
+    def detect_faces(self, image_path: str) -> list[FaceBox]:
         path = Path(image_path)
         if not path.exists():
             raise FileNotFoundError(f"Image not found: {path}")
@@ -41,7 +40,7 @@ class FaceDetectionService:
             rgb = img.convert("RGB")
             np_image = np.array(rgb)
 
-        face_boxes: List[FaceBox] = []
+        face_boxes: list[FaceBox] = []
 
         if self._detector_mode == "mediapipe":
             results = self._detector.process(np_image)
@@ -61,7 +60,7 @@ class FaceDetectionService:
             gray = cv2.cvtColor(np_image, cv2.COLOR_RGB2GRAY)
             detections = self._detector.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=5)
             height, width = gray.shape
-            for (x, y, w, h) in detections:
+            for x, y, w, h in detections:
                 face_boxes.append(
                     FaceBox(
                         x=float(x) / float(width),
@@ -73,7 +72,7 @@ class FaceDetectionService:
                 )
         return face_boxes
 
-    def match_faces(self, image_path: str) -> List[str]:  # pragma: no cover - placeholder
+    def match_faces(self, image_path: str) -> list[str]:  # pragma: no cover - placeholder
         """Placeholder hook for embedding-based face matching (InsightFace/ArcFace)."""
         _ = image_path
         return []
@@ -95,7 +94,8 @@ class FaceDetectionService:
             cascade_path = cv2.data.haarcascades + "haarcascade_frontalface_default.xml"
             cascade = cv2.CascadeClassifier(cascade_path)
             if cascade.empty():
-                raise RuntimeError("Face detection unavailable: no MediaPipe solutions or Haar cascade found")
+                raise RuntimeError(
+                    "Face detection unavailable: no MediaPipe solutions or Haar cascade found"
+                )
             self._detector = cascade
             self._detector_mode = "opencv"
-

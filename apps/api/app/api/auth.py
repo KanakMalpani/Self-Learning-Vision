@@ -9,7 +9,13 @@ from sqlalchemy.orm import Session
 
 from app.core.config import settings
 from app.core.db import get_db
-from app.core.security import TokenError, create_access_token, decode_access_token, hash_password, verify_password
+from app.core.security import (
+    TokenError,
+    create_access_token,
+    decode_access_token,
+    hash_password,
+    verify_password,
+)
 from app.models import User
 from app.schemas import LoginRequest, RegisterRequest, TokenResponse, UserResponse
 
@@ -63,16 +69,22 @@ def get_current_user(
     try:
         payload = decode_access_token(credentials.credentials)
     except TokenError:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid authentication token")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid authentication token"
+        )
 
     try:
         user_id = UUID(str(payload["sub"]))
     except ValueError:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid authentication token")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid authentication token"
+        )
 
     user = db.get(User, user_id)
     if not user or not user.is_active:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Inactive or missing user")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Inactive or missing user"
+        )
     return user
 
 
@@ -81,7 +93,9 @@ def register(payload: RegisterRequest, db: Session = Depends(get_db)) -> TokenRe
     email = payload.email.lower()
     existing = _get_user_by_email(db, email)
     if existing:
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Email is already registered")
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT, detail="Email is already registered"
+        )
 
     user = User(email=email, password_hash=hash_password(payload.password), is_active=True)
     db.add(user)
@@ -96,7 +110,9 @@ def register(payload: RegisterRequest, db: Session = Depends(get_db)) -> TokenRe
 def login(payload: LoginRequest, db: Session = Depends(get_db)) -> TokenResponse:
     user = _get_user_by_email(db, payload.email)
     if not user or not verify_password(payload.password, user.password_hash):
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid email or password")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid email or password"
+        )
 
     if not user.is_active:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Inactive user")
@@ -113,4 +129,3 @@ def me(current_user: User = Depends(get_current_user)) -> UserResponse:
         is_active=current_user.is_active,
         created_at=current_user.created_at,
     )
-

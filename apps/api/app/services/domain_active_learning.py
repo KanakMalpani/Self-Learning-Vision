@@ -27,9 +27,7 @@ class DomainActiveLearningPlanner:
         template = self.template_catalog.find(entity.domain_type)
         fields = template.fields if template else {}
         missing_fields = [
-            field_name
-            for field_name in fields
-            if _is_missing(entity.attributes.get(field_name))
+            field_name for field_name in fields if _is_missing(entity.attributes.get(field_name))
         ]
         prompts = template.prompts if template else []
 
@@ -84,13 +82,17 @@ class DomainActiveLearningPlanner:
         if entity.domain_type == "document":
             return f"What visible text or document type should be remembered for '{entity.label}'?"
         if entity.domain_type == "product":
-            return f"What brand, model, SKU, or condition should be remembered for '{entity.label}'?"
+            return (
+                f"What brand, model, SKU, or condition should be remembered for '{entity.label}'?"
+            )
         if entity.domain_type == "place":
             return f"What landmarks or location details identify '{entity.label}'?"
         if entity.domain_type == "scene":
             return f"What changed or matters in the scene '{entity.label}'?"
         if entity.domain_type == "event":
-            return f"What happened, who was involved, and what outcome matters for '{entity.label}'?"
+            return (
+                f"What happened, who was involved, and what outcome matters for '{entity.label}'?"
+            )
         if prompts:
             return prompts[0]
         field_list = ", ".join(missing_fields[:4])

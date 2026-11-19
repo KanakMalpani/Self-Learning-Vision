@@ -11,9 +11,21 @@ from app.services.evaluation import (
 
 def test_evaluation_metrics_estimate_quality_from_feedback_signals() -> None:
     memory_runs = [
-        SimpleNamespace(memory_report={"recognition_summary": {"recognition_decision": "matched", "confidence": 0.9}}),
-        SimpleNamespace(memory_report={"recognition_summary": {"recognition_decision": "tentative", "confidence": 0.6}}),
-        SimpleNamespace(memory_report={"recognition_summary": {"recognition_decision": "unknown", "confidence": 0.2}}),
+        SimpleNamespace(
+            memory_report={
+                "recognition_summary": {"recognition_decision": "matched", "confidence": 0.9}
+            }
+        ),
+        SimpleNamespace(
+            memory_report={
+                "recognition_summary": {"recognition_decision": "tentative", "confidence": 0.6}
+            }
+        ),
+        SimpleNamespace(
+            memory_report={
+                "recognition_summary": {"recognition_decision": "unknown", "confidence": 0.2}
+            }
+        ),
     ]
     active_questions = [
         SimpleNamespace(status="answered", response=SimpleNamespace(action="confirm")),
@@ -51,7 +63,9 @@ def test_evaluation_dataset_excludes_raw_artifacts() -> None:
             question_type="label_unknown_cluster",
             domain_type="person",
             status="answered",
-            response=SimpleNamespace(action="label", label="Ada", answered_at="2026-01-01T00:00:00+00:00"),
+            response=SimpleNamespace(
+                action="label", label="Ada", answered_at="2026-01-01T00:00:00+00:00"
+            ),
             memory_run_id="run-1",
             upload_id="upload-1",
             selected_face_index=0,

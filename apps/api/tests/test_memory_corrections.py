@@ -9,7 +9,9 @@ from app.services.memory_entity_registry import MemoryEntityRegistry, MemoryObse
 def test_memory_entity_rename_and_undo_snapshot(tmp_path: Path) -> None:
     entities = MemoryEntityRegistry(tmp_path / "entities.json")
     corrections = CorrectionLogRegistry(tmp_path / "corrections.json")
-    entity = entities.upsert_entity(domain_type="person", label="Ada", tags=["math"], confidence=0.8)
+    entity = entities.upsert_entity(
+        domain_type="person", label="Ada", tags=["math"], confidence=0.8
+    )
 
     before = entities.snapshot()
     renamed = entities.rename_entity(entity_id=entity.entity_id, label="Ada Lovelace")

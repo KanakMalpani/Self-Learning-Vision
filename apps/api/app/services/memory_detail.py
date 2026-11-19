@@ -25,9 +25,7 @@ def build_memory_entity_detail(
     learning_signals = learning_signals or []
     all_entities = all_entities or [entity]
     related_corrections = [
-        correction
-        for correction in corrections
-        if correction.target_entity_id == entity.entity_id
+        correction for correction in corrections if correction.target_entity_id == entity.entity_id
     ]
     related_questions = [
         question

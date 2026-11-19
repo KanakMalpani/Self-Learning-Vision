@@ -48,7 +48,9 @@ class PrivacySettingsRegistry:
             if allow_hosted_providers is not None:
                 current.allow_hosted_providers = bool(allow_hosted_providers)
             if export_include_biometric_embeddings is not None:
-                current.export_include_biometric_embeddings = bool(export_include_biometric_embeddings)
+                current.export_include_biometric_embeddings = bool(
+                    export_include_biometric_embeddings
+                )
             if export_include_upload_paths is not None:
                 current.export_include_upload_paths = bool(export_include_upload_paths)
             if data_retention_days is not None:
@@ -77,7 +79,9 @@ class PrivacySettingsRegistry:
         return PrivacySettingsRecord(
             local_only_mode=bool(payload.get("local_only_mode", True)),
             allow_hosted_providers=bool(payload.get("allow_hosted_providers", False)),
-            export_include_biometric_embeddings=bool(payload.get("export_include_biometric_embeddings", False)),
+            export_include_biometric_embeddings=bool(
+                payload.get("export_include_biometric_embeddings", False)
+            ),
             export_include_upload_paths=bool(payload.get("export_include_upload_paths", False)),
             data_retention_days=(
                 max(1, int(payload["data_retention_days"]))

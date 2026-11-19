@@ -1,4 +1,5 @@
 import uuid
+
 from sqlalchemy import Column, DateTime, ForeignKey, String, Text, func
 from sqlalchemy.orm import relationship
 
@@ -16,4 +17,3 @@ class Activity(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     memory_run = relationship("MemoryRun", back_populates="activities")
-

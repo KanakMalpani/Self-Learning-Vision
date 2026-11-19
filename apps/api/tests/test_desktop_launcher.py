@@ -15,7 +15,9 @@ from desktop_launcher import (
 )
 
 
-def test_desktop_launcher_sets_local_only_environment(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_desktop_launcher_sets_local_only_environment(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     for key in (
         "DESKTOP_MODE",
         "DESKTOP_APP_DATA_DIR",

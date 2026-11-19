@@ -8,7 +8,6 @@ from pathlib import Path
 from typing import Any, Literal
 from uuid import uuid4
 
-
 SignalStatus = Literal["pending", "resolved", "dismissed"]
 
 SENSITIVE_METADATA_KEYS = {
@@ -173,13 +172,21 @@ class LearningSignalRegistry:
             self._save_payload([asdict(item) for item in records])
             return record
 
-    def resolve_signal(self, signal_id: str, *, resolution: str | None = None) -> LearningSignalRecord | None:
+    def resolve_signal(
+        self, signal_id: str, *, resolution: str | None = None
+    ) -> LearningSignalRecord | None:
         return self._set_status(signal_id, status="resolved", resolution=resolution)
 
-    def dismiss_signal(self, signal_id: str, *, resolution: str | None = None) -> LearningSignalRecord | None:
-        return self._set_status(signal_id, status="dismissed", resolution=resolution or "Dismissed by user")
+    def dismiss_signal(
+        self, signal_id: str, *, resolution: str | None = None
+    ) -> LearningSignalRecord | None:
+        return self._set_status(
+            signal_id, status="dismissed", resolution=resolution or "Dismissed by user"
+        )
 
-    def resolve_many(self, signal_ids: list[str], *, resolution: str | None = None) -> list[LearningSignalRecord]:
+    def resolve_many(
+        self, signal_ids: list[str], *, resolution: str | None = None
+    ) -> list[LearningSignalRecord]:
         resolved = []
         for signal_id in signal_ids:
             record = self.resolve_signal(signal_id, resolution=resolution)
@@ -315,7 +322,9 @@ class LearningSignalRegistry:
         return normalized if normalized in {"low", "medium", "high"} else "medium"
 
     def _normalize_type(self, value: str) -> str:
-        normalized = "".join(char if char.isalnum() or char in {"_", "-"} else "_" for char in value.lower())
+        normalized = "".join(
+            char if char.isalnum() or char in {"_", "-"} else "_" for char in value.lower()
+        )
         normalized = normalized.strip("_-")
         return normalized or "custom"
 

@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import List, Literal, Optional
+from typing import Literal, Optional
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -18,27 +18,27 @@ class FaceBox(BaseModel):
 
 class UploadResponse(BaseModel):
     upload_id: UUID
-    face_boxes: List[FaceBox]
+    face_boxes: list[FaceBox]
 
 
 class FaceReferenceEnrollRequest(BaseModel):
     name_or_alias: str = Field(min_length=1, max_length=200)
-    notes: Optional[str] = None
+    notes: str | None = None
     tags: list[str] = Field(default_factory=list)
     selected_face_index: int = Field(default=0, ge=0)
-    unknown_cluster_id: Optional[str] = None
+    unknown_cluster_id: str | None = None
 
 
 class FaceReferenceItem(BaseModel):
     reference_id: str
     name_or_alias: str
     provider: str
-    source_image_path: Optional[str] = None
+    source_image_path: str | None = None
     face_index: int = 0
-    notes: Optional[str] = None
+    notes: str | None = None
     tags: list[str] = Field(default_factory=list)
     seen_count: int = 0
-    last_seen_at: Optional[datetime] = None
+    last_seen_at: datetime | None = None
     created_at: datetime
 
 
@@ -51,10 +51,10 @@ class FaceReferenceEnrollResponse(BaseModel):
 class MemoryObservationItem(BaseModel):
     observation_id: str
     source: str
-    source_id: Optional[str] = None
+    source_id: str | None = None
     modality: str = "vision"
-    confidence: Optional[float] = None
-    notes: Optional[str] = None
+    confidence: float | None = None
+    notes: str | None = None
     observed_at: datetime
 
 
@@ -65,7 +65,7 @@ class MemoryLifecycleEventItem(BaseModel):
     to_state: str
     confidence_before: float
     confidence_after: float
-    reason: Optional[str] = None
+    reason: str | None = None
     created_at: datetime
 
 
@@ -78,7 +78,7 @@ class MemoryEntityItem(BaseModel):
     user_schema: dict[str, object] = Field(default_factory=dict)
     aliases: list[str] = Field(default_factory=list)
     tags: list[str] = Field(default_factory=list)
-    notes: Optional[str] = None
+    notes: str | None = None
     confidence: float = 0.0
     lifecycle_state: str = "candidate"
     observations: list[MemoryObservationItem] = Field(default_factory=list)
@@ -95,19 +95,19 @@ class MemoryEntityCreateRequest(BaseModel):
     user_schema: dict[str, object] = Field(default_factory=dict)
     aliases: list[str] = Field(default_factory=list)
     tags: list[str] = Field(default_factory=list)
-    notes: Optional[str] = None
+    notes: str | None = None
     confidence: float = Field(default=0.0, ge=0.0, le=1.0)
     lifecycle_state: str = "candidate"
 
 
 class MemoryEntityUpdateRequest(BaseModel):
-    attributes: Optional[dict[str, object]] = None
-    user_schema: Optional[dict[str, object]] = None
-    aliases: Optional[list[str]] = None
-    tags: Optional[list[str]] = None
-    notes: Optional[str] = None
-    confidence: Optional[float] = Field(default=None, ge=0.0, le=1.0)
-    lifecycle_state: Optional[str] = None
+    attributes: dict[str, object] | None = None
+    user_schema: dict[str, object] | None = None
+    aliases: list[str] | None = None
+    tags: list[str] | None = None
+    notes: str | None = None
+    confidence: float | None = Field(default=None, ge=0.0, le=1.0)
+    lifecycle_state: str | None = None
 
 
 class MemoryEntityCreateResponse(BaseModel):
@@ -156,13 +156,13 @@ class MemoryEntityCreateFromTemplateRequest(BaseModel):
     attributes: dict[str, object] = Field(default_factory=dict)
     aliases: list[str] = Field(default_factory=list)
     tags: list[str] = Field(default_factory=list)
-    notes: Optional[str] = None
-    confidence: Optional[float] = Field(default=None, ge=0.0, le=1.0)
-    lifecycle_state: Optional[str] = None
+    notes: str | None = None
+    confidence: float | None = Field(default=None, ge=0.0, le=1.0)
+    lifecycle_state: str | None = None
 
 
 class MemoryEntityCorrectionRequest(BaseModel):
-    notes: Optional[str] = None
+    notes: str | None = None
 
 
 class MemoryEntityRenameRequest(MemoryEntityCorrectionRequest):
@@ -175,7 +175,7 @@ class MemoryEntityForgetRequest(MemoryEntityCorrectionRequest):
 
 
 class MemoryEntityNotThisRequest(MemoryEntityCorrectionRequest):
-    rejected_label: Optional[str] = Field(default=None, max_length=200)
+    rejected_label: str | None = Field(default=None, max_length=200)
 
 
 class MemoryEntityMergeRequest(MemoryEntityCorrectionRequest):
@@ -194,7 +194,7 @@ class CorrectionLogItem(BaseModel):
     summary: str
     metadata: dict[str, object] = Field(default_factory=dict)
     undone: bool = False
-    undone_at: Optional[datetime] = None
+    undone_at: datetime | None = None
     created_at: datetime
 
 
@@ -204,19 +204,19 @@ class CorrectionListResponse(BaseModel):
 
 class CorrectionResponse(BaseModel):
     correction: CorrectionLogItem
-    entity: Optional[MemoryEntityItem] = None
+    entity: MemoryEntityItem | None = None
     related_entities: list[MemoryEntityItem] = Field(default_factory=list)
 
 
 class MemoryLifecycleReinforceRequest(BaseModel):
     amount: float = Field(default=0.05, ge=0.0, le=1.0)
-    reason: Optional[str] = None
+    reason: str | None = None
 
 
 class MemoryLifecycleContradictionRequest(BaseModel):
-    rejected_label: Optional[str] = Field(default=None, max_length=200)
+    rejected_label: str | None = Field(default=None, max_length=200)
     amount: float = Field(default=0.15, ge=0.0, le=1.0)
-    reason: Optional[str] = None
+    reason: str | None = None
 
 
 class MemoryLifecycleDecayRequest(BaseModel):
@@ -225,7 +225,7 @@ class MemoryLifecycleDecayRequest(BaseModel):
 
 
 class MemoryLifecycleOperationResponse(BaseModel):
-    entity: Optional[MemoryEntityItem] = None
+    entity: MemoryEntityItem | None = None
     affected_entities: list[MemoryEntityItem] = Field(default_factory=list)
     summary: dict[str, object] = Field(default_factory=dict)
 
@@ -245,19 +245,19 @@ class LearningSignalItem(BaseModel):
     source: str
     summary: str
     domain_type: str = "custom"
-    entity_id: Optional[str] = None
-    question_id: Optional[str] = None
-    source_id: Optional[str] = None
+    entity_id: str | None = None
+    question_id: str | None = None
+    source_id: str | None = None
     status: str = "pending"
     confidence: float = 0.0
     learning_value: float = 0.0
     risk_level: str = "medium"
     evidence: list[str] = Field(default_factory=list)
     metadata: dict[str, object] = Field(default_factory=dict)
-    resolution: Optional[str] = None
+    resolution: str | None = None
     created_at: datetime
     updated_at: datetime
-    resolved_at: Optional[datetime] = None
+    resolved_at: datetime | None = None
 
 
 class LearningSignalListResponse(BaseModel):
@@ -267,7 +267,7 @@ class LearningSignalListResponse(BaseModel):
 
 
 class LearningSignalDismissRequest(BaseModel):
-    reason: Optional[str] = None
+    reason: str | None = None
 
 
 class MemoryHealthItem(BaseModel):
@@ -311,7 +311,7 @@ class LearningTimelineItem(BaseModel):
     title: str
     summary: str
     source: str
-    confidence: Optional[float] = None
+    confidence: float | None = None
     created_at: str = ""
 
 
@@ -370,28 +370,28 @@ class PrivacySettingsItem(BaseModel):
     allow_hosted_providers: bool = False
     export_include_biometric_embeddings: bool = False
     export_include_upload_paths: bool = False
-    data_retention_days: Optional[int] = None
+    data_retention_days: int | None = None
     domain_visibility: dict[str, str] = Field(default_factory=dict)
     updated_at: datetime
 
 
 class PrivacySettingsUpdateRequest(BaseModel):
-    local_only_mode: Optional[bool] = None
-    allow_hosted_providers: Optional[bool] = None
-    export_include_biometric_embeddings: Optional[bool] = None
-    export_include_upload_paths: Optional[bool] = None
-    data_retention_days: Optional[int] = Field(default=None, ge=1, le=3650)
-    domain_visibility: Optional[dict[str, str]] = None
+    local_only_mode: bool | None = None
+    allow_hosted_providers: bool | None = None
+    export_include_biometric_embeddings: bool | None = None
+    export_include_upload_paths: bool | None = None
+    data_retention_days: int | None = Field(default=None, ge=1, le=3650)
+    domain_visibility: dict[str, str] | None = None
 
 
 class VaultExportRequest(BaseModel):
     encrypt: bool = False
-    passphrase: Optional[str] = Field(default=None, min_length=8)
+    passphrase: str | None = Field(default=None, min_length=8)
 
 
 class VaultImportRequest(BaseModel):
     vault: dict[str, object] = Field(default_factory=dict)
-    passphrase: Optional[str] = Field(default=None, min_length=8)
+    passphrase: str | None = Field(default=None, min_length=8)
     replace_memory_entities: bool = False
 
 
@@ -412,13 +412,13 @@ class ProviderCardItem(BaseModel):
     enabled_by_default: bool = False
     recommended_for: list[str] = Field(default_factory=list)
     env_vars: list[str] = Field(default_factory=list)
-    expected_dimensions: Optional[int] = None
+    expected_dimensions: int | None = None
     latency_profile: str = "unknown"
     cost_model: str = "free"
     setup: str = ""
     privacy_notes: str = ""
-    entrypoint: Optional[str] = None
-    manifest_path: Optional[str] = None
+    entrypoint: str | None = None
+    manifest_path: str | None = None
     plugin_source: str = "built_in"
 
 
@@ -484,7 +484,7 @@ class ProviderHealthResponse(BaseModel):
 class EvaluationMetricsResponse(BaseModel):
     memory_runs: int = 0
     recognition_decisions: dict[str, int] = Field(default_factory=dict)
-    average_recognition_confidence: Optional[float] = None
+    average_recognition_confidence: float | None = None
     active_learning_questions: int = 0
     active_learning_pending: int = 0
     active_learning_answered: int = 0
@@ -504,8 +504,8 @@ class EvaluationMetricsResponse(BaseModel):
     uncertainty_rate: float = 0.0
     correction_rate: float = 0.0
     active_learning_completion_rate: float = 0.0
-    estimated_precision: Optional[float] = None
-    estimated_recall: Optional[float] = None
+    estimated_precision: float | None = None
+    estimated_recall: float | None = None
     memory_growth_per_run: float = 0.0
     notes: list[str] = Field(default_factory=list)
 
@@ -514,25 +514,25 @@ class EvaluationDatasetExample(BaseModel):
     example_id: str
     source: str
     task: str
-    domain_type: Optional[str] = None
-    status: Optional[str] = None
-    action: Optional[str] = None
-    label: Optional[str] = None
-    candidate_label: Optional[str] = None
-    memory_run_id: Optional[str] = None
-    upload_id: Optional[str] = None
-    selected_face_index: Optional[int] = None
-    unknown_cluster_id: Optional[str] = None
-    confidence: Optional[float] = None
-    target_entity_id: Optional[str] = None
-    summary: Optional[str] = None
-    undone: Optional[bool] = None
-    lifecycle_state: Optional[str] = None
-    observation_count: Optional[int] = None
-    lifecycle_event_count: Optional[int] = None
-    created_at: Optional[str] = None
-    answered_at: Optional[str] = None
-    updated_at: Optional[str] = None
+    domain_type: str | None = None
+    status: str | None = None
+    action: str | None = None
+    label: str | None = None
+    candidate_label: str | None = None
+    memory_run_id: str | None = None
+    upload_id: str | None = None
+    selected_face_index: int | None = None
+    unknown_cluster_id: str | None = None
+    confidence: float | None = None
+    target_entity_id: str | None = None
+    summary: str | None = None
+    undone: bool | None = None
+    lifecycle_state: str | None = None
+    observation_count: int | None = None
+    lifecycle_event_count: int | None = None
+    created_at: str | None = None
+    answered_at: str | None = None
+    updated_at: str | None = None
 
 
 class EvaluationDatasetResponse(BaseModel):
@@ -544,13 +544,13 @@ class EvaluationDatasetResponse(BaseModel):
 
 class ProviderScorecardProviderItem(BaseModel):
     provider_id: str
-    display_name: Optional[str] = None
-    mode: Optional[str] = None
-    status: Optional[str] = None
+    display_name: str | None = None
+    mode: str | None = None
+    status: str | None = None
     capabilities: list[str] = Field(default_factory=list)
-    cost_model: Optional[str] = None
+    cost_model: str | None = None
     images_leave_device: bool = False
-    privacy_notes: Optional[str] = None
+    privacy_notes: str | None = None
     selected_for: list[str] = Field(default_factory=list)
 
 
@@ -585,8 +585,8 @@ class ConfidenceLedgerEntryItem(BaseModel):
     entry_id: str
     source: str
     event_type: str
-    confidence_before: Optional[float] = None
-    confidence_after: Optional[float] = None
+    confidence_before: float | None = None
+    confidence_after: float | None = None
     delta: float = 0.0
     reason: str
     created_at: str
@@ -606,7 +606,7 @@ class MemoryEntityDetailResponse(BaseModel):
     active_learning_questions: list["ActiveLearningQuestionItem"] = Field(default_factory=list)
     corrections: list[CorrectionLogItem] = Field(default_factory=list)
     evidence_bundles: list[MemoryEvidenceBundleItem] = Field(default_factory=list)
-    health: Optional[MemoryHealthItem] = None
+    health: MemoryHealthItem | None = None
     related_conflicts: list[dict[str, object]] = Field(default_factory=list)
     replay_suggestions: list[LearningReplaySuggestionItem] = Field(default_factory=list)
     learning_timeline: list[LearningTimelineItem] = Field(default_factory=list)
@@ -615,14 +615,14 @@ class MemoryEntityDetailResponse(BaseModel):
 
 class BenchmarkRunCreateRequest(BaseModel):
     label: str = Field(default="", max_length=200)
-    notes: Optional[str] = None
+    notes: str | None = None
     benchmark_case_ids: list[str] = Field(default_factory=list)
 
 
 class BenchmarkRunItem(BaseModel):
     run_id: str
     label: str
-    notes: Optional[str] = None
+    notes: str | None = None
     benchmark_case_ids: list[str] = Field(default_factory=list)
     provider_selections: dict[str, str] = Field(default_factory=dict)
     metrics: dict[str, object] = Field(default_factory=dict)
@@ -650,8 +650,8 @@ class MemoryDomainListResponse(BaseModel):
 
 class ActiveLearningResponseItem(BaseModel):
     action: str
-    label: Optional[str] = None
-    notes: Optional[str] = None
+    label: str | None = None
+    notes: str | None = None
     tags: list[str] = Field(default_factory=list)
     answered_at: datetime
 
@@ -668,16 +668,16 @@ class ActiveLearningQuestionItem(BaseModel):
     source_signal_ids: list[str] = Field(default_factory=list)
     learning_value: float = 0.0
     risk_level: str = "medium"
-    cooldown_until: Optional[str] = None
+    cooldown_until: str | None = None
     suggested_action: str = ""
-    memory_run_id: Optional[str] = None
-    upload_id: Optional[str] = None
-    selected_face_index: Optional[int] = None
-    candidate_label: Optional[str] = None
-    candidate_reference_id: Optional[str] = None
-    unknown_cluster_id: Optional[str] = None
+    memory_run_id: str | None = None
+    upload_id: str | None = None
+    selected_face_index: int | None = None
+    candidate_label: str | None = None
+    candidate_reference_id: str | None = None
+    unknown_cluster_id: str | None = None
     context: dict[str, object] = Field(default_factory=dict)
-    response: Optional[ActiveLearningResponseItem] = None
+    response: ActiveLearningResponseItem | None = None
     created_at: datetime
     updated_at: datetime
 
@@ -689,8 +689,8 @@ class ActiveLearningQuestionListResponse(BaseModel):
 
 class ActiveLearningQuestionResponseRequest(BaseModel):
     action: Literal["confirm", "reject", "dismiss", "label", "skip"]
-    label: Optional[str] = Field(default=None, max_length=200)
-    notes: Optional[str] = None
+    label: str | None = Field(default=None, max_length=200)
+    notes: str | None = None
     tags: list[str] = Field(default_factory=list)
 
 
@@ -703,27 +703,27 @@ class ActiveLearningQuestionResponse(BaseModel):
 class MemoryRunRequest(BaseModel):
     upload_id: UUID
     selected_face_index: int = Field(ge=0)
-    notes: Optional[str] = None
+    notes: str | None = None
 
 
 class UploadRecognitionResult(BaseModel):
     selected_face_index: int
     status: Literal["matched", "tentative", "unknown"]
     confidence: float = 0.0
-    reference_id: Optional[str] = None
-    top_candidate_name: Optional[str] = None
-    top_candidate_provider: Optional[str] = None
-    memory_summary: Optional[str] = None
-    notes: Optional[str] = None
+    reference_id: str | None = None
+    top_candidate_name: str | None = None
+    top_candidate_provider: str | None = None
+    memory_summary: str | None = None
+    notes: str | None = None
     tags: list[str] = Field(default_factory=list)
-    seen_count: Optional[int] = None
-    last_seen_at: Optional[datetime] = None
-    unknown_sample_id: Optional[str] = None
+    seen_count: int | None = None
+    last_seen_at: datetime | None = None
+    unknown_sample_id: str | None = None
     unknown_sample_stored: bool = False
-    unknown_cluster_id: Optional[str] = None
+    unknown_cluster_id: str | None = None
     unknown_cluster_sighting_count: int = 0
     unknown_cluster_suggested_for_enrollment: bool = False
-    quality_score: Optional[float] = None
+    quality_score: float | None = None
     reason: str = ""
     embedding_dimensions: int = 0
     candidate_count: int = 0
@@ -731,7 +731,7 @@ class UploadRecognitionResult(BaseModel):
 
 class MemoryRunCreateResponse(BaseModel):
     memory_run_id: UUID
-    recognition_result: Optional[UploadRecognitionResult] = None
+    recognition_result: UploadRecognitionResult | None = None
 
 
 class ActivityEntry(BaseModel):
@@ -743,19 +743,19 @@ class ActivityEntry(BaseModel):
 class MemoryRunResponse(BaseModel):
     id: UUID
     status: MemoryRunStatus
-    memory_report: Optional[MemoryReport] = None
-    activities: List[ActivityEntry]
+    memory_report: MemoryReport | None = None
+    activities: list[ActivityEntry]
 
 
 class MemoryRunHistoryItem(BaseModel):
     memory_run_id: UUID
     status: MemoryRunStatus
     created_at: datetime
-    last_updated: Optional[datetime] = None
+    last_updated: datetime | None = None
 
 
 class MemoryRunHistoryResponse(BaseModel):
-    memory_runs: List[MemoryRunHistoryItem]
+    memory_runs: list[MemoryRunHistoryItem]
 
 
 class HealthResponse(BaseModel):

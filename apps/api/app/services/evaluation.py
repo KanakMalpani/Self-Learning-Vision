@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 from collections import Counter
+from collections.abc import Iterable
 from dataclasses import asdict
-from typing import Any, Iterable
-
+from typing import Any
 
 RECOGNITION_DECISIONS = ("matched", "tentative", "unknown")
 
@@ -36,13 +36,21 @@ def build_evaluation_metrics(
         for question in questions
         if _question_status(question) in {"answered", "dismissed"} and _question_response(question)
     ]
-    pending_questions = [question for question in questions if _question_status(question) == "pending"]
-    actions = Counter(_response_action(_question_response(question)) for question in answered_questions)
+    pending_questions = [
+        question for question in questions if _question_status(question) == "pending"
+    ]
+    actions = Counter(
+        _response_action(_question_response(question)) for question in answered_questions
+    )
     correction_types = Counter(_correction_operation(record) for record in correction_records)
 
     contradictions = _int_value(lifecycle.get("contradictions"))
-    signal_contradictions = len([signal for signal in signals if _signal_type(signal) == "contradiction"])
-    false_match_signals = correction_types.get("not_this", 0) + actions.get("reject", 0) + contradictions
+    signal_contradictions = len(
+        [signal for signal in signals if _signal_type(signal) == "contradiction"]
+    )
+    false_match_signals = (
+        correction_types.get("not_this", 0) + actions.get("reject", 0) + contradictions
+    )
     missed_match_signals = actions.get("label", 0) + correction_types.get("merge", 0)
     reviewed_positive = actions.get("confirm", 0)
     reviewed_learned = reviewed_positive + actions.get("label", 0)
@@ -74,18 +82,20 @@ def build_evaluation_metrics(
         "review_inbox_pending_count": review_inbox_pending_count,
         "contradiction_rate": _rate(contradictions + signal_contradictions, len(entities)),
         "memory_health_distribution": memory_health_distribution or {},
-        "replay_applied_count": len([signal for signal in signals if _signal_type(signal) == "learning_replay"]),
+        "replay_applied_count": len(
+            [signal for signal in signals if _signal_type(signal) == "learning_replay"]
+        ),
         "false_match_signals": false_match_signals,
         "missed_match_signals": missed_match_signals,
         "uncertainty_rate": _rate(review_needed, total_runs),
         "correction_rate": _rate(len(correction_records), total_runs),
         "active_learning_completion_rate": _rate(active_answered, total_questions),
-        "estimated_precision": _rate(reviewed_positive, precision_denominator)
-        if precision_denominator
-        else None,
-        "estimated_recall": _rate(reviewed_learned, recall_denominator)
-        if recall_denominator
-        else None,
+        "estimated_precision": (
+            _rate(reviewed_positive, precision_denominator) if precision_denominator else None
+        ),
+        "estimated_recall": (
+            _rate(reviewed_learned, recall_denominator) if recall_denominator else None
+        ),
         "memory_growth_per_run": _rate(len(entities), total_runs),
         "notes": [
             "Precision and recall are estimates from user feedback and correction signals.",
@@ -233,7 +243,9 @@ def _recognition_decision(run: object) -> str:
     summary = report.get("recognition_summary")
     if not isinstance(summary, dict):
         return "unknown"
-    decision = str(summary.get("recognition_decision") or summary.get("final_verdict_decision") or "")
+    decision = str(
+        summary.get("recognition_decision") or summary.get("final_verdict_decision") or ""
+    )
     decision = decision.strip().lower()
     return decision if decision in RECOGNITION_DECISIONS else "unknown"
 

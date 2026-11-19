@@ -55,7 +55,9 @@ def evaluate_provider_conformance(card: ProviderCard) -> dict[str, Any]:
         _check(
             "runtime_entrypoint",
             "Runtime provider has an entrypoint when executable",
-            card.plugin_source != "manifest" or card.status in {"manifest_only", "template"} or bool(card.entrypoint),
+            card.plugin_source != "manifest"
+            or card.status in {"manifest_only", "template"}
+            or bool(card.entrypoint),
             "warning",
             "Executable manifest providers should include a Python entrypoint.",
         ),
@@ -67,8 +69,12 @@ def evaluate_provider_conformance(card: ProviderCard) -> dict[str, Any]:
         "passed": passed,
         "checks": [check.__dict__ for check in checks],
         "summary": {
-            "errors": len([check for check in checks if not check.passed and check.severity == "error"]),
-            "warnings": len([check for check in checks if not check.passed and check.severity == "warning"]),
+            "errors": len(
+                [check for check in checks if not check.passed and check.severity == "error"]
+            ),
+            "warnings": len(
+                [check for check in checks if not check.passed and check.severity == "warning"]
+            ),
         },
     }
 
@@ -82,7 +88,9 @@ def evaluate_provider_catalog(cards: list[ProviderCard]) -> dict[str, Any]:
     }
 
 
-def _check(check_id: str, label: str, passed: bool, severity: str, detail: str) -> ProviderConformanceCheck:
+def _check(
+    check_id: str, label: str, passed: bool, severity: str, detail: str
+) -> ProviderConformanceCheck:
     return ProviderConformanceCheck(
         check_id=check_id,
         label=label,

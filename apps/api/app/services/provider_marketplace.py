@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-import json
 import importlib
+import json
 import threading
 from dataclasses import asdict, dataclass, field
 from datetime import UTC, datetime
@@ -9,7 +9,6 @@ from pathlib import Path
 from typing import Any
 
 from app.core.config import settings
-
 
 PROVIDER_CAPABILITIES = {
     "face_embedding",
@@ -51,15 +50,19 @@ class ProviderPluginRegistry:
     an `entrypoint`, the backend can instantiate it for supported runtime paths.
     """
 
-    def __init__(self, manifest_dirs: list[str | Path] | None = None, *, include_default: bool = True) -> None:
+    def __init__(
+        self, manifest_dirs: list[str | Path] | None = None, *, include_default: bool = True
+    ) -> None:
         default_dir = Path(__file__).resolve().parents[1] / "providers" / "manifests"
         configured_dirs = [
-            Path(item.strip())
-            for item in settings.provider_plugin_dirs.split(";")
-            if item.strip()
+            Path(item.strip()) for item in settings.provider_plugin_dirs.split(";") if item.strip()
         ]
         defaults = [default_dir] if include_default else []
-        self.manifest_dirs = [*defaults, *configured_dirs, *(Path(item) for item in (manifest_dirs or []))]
+        self.manifest_dirs = [
+            *defaults,
+            *configured_dirs,
+            *(Path(item) for item in (manifest_dirs or [])),
+        ]
 
     def list_cards(self) -> list[ProviderCard]:
         cards: list[ProviderCard] = []
@@ -165,12 +168,16 @@ class ProviderMarketplace:
     def __init__(self, plugin_registry: ProviderPluginRegistry | None = None) -> None:
         self.plugin_registry = plugin_registry or ProviderPluginRegistry()
 
-    def list_cards(self, *, privacy_local_only: bool = True, allow_hosted: bool = False) -> list[ProviderCard]:
+    def list_cards(
+        self, *, privacy_local_only: bool = True, allow_hosted: bool = False
+    ) -> list[ProviderCard]:
         by_id: dict[str, ProviderCard] = {card.provider_id: card for card in self._base_cards()}
         for card in self.plugin_registry.list_cards():
             by_id.setdefault(card.provider_id, card)
         return [
-            self._card_with_policy_status(card, privacy_local_only=privacy_local_only, allow_hosted=allow_hosted)
+            self._card_with_policy_status(
+                card, privacy_local_only=privacy_local_only, allow_hosted=allow_hosted
+            )
             for card in by_id.values()
         ]
 
@@ -182,7 +189,9 @@ class ProviderMarketplace:
         allow_hosted: bool = False,
     ) -> ProviderCard | None:
         needle = provider_id.strip().lower()
-        for card in self.list_cards(privacy_local_only=privacy_local_only, allow_hosted=allow_hosted):
+        for card in self.list_cards(
+            privacy_local_only=privacy_local_only, allow_hosted=allow_hosted
+        ):
             if card.provider_id == needle:
                 return card
         return None

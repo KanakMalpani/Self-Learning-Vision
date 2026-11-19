@@ -45,7 +45,9 @@ class UnknownFaceRegistry:
     ) -> None:
         self.path = Path(path)
         self.path.parent.mkdir(parents=True, exist_ok=True)
-        self.cluster_path = Path(cluster_path) if cluster_path is not None else self.path.with_name("clusters.json")
+        self.cluster_path = (
+            Path(cluster_path) if cluster_path is not None else self.path.with_name("clusters.json")
+        )
         self.cluster_path.parent.mkdir(parents=True, exist_ok=True)
         self.cluster_similarity_threshold = max(-1.0, min(1.0, float(cluster_similarity_threshold)))
         self.familiarity_min_samples = max(2, int(familiarity_min_samples))
@@ -59,7 +61,12 @@ class UnknownFaceRegistry:
             embedding = item.get("embedding")
             source_upload_id = str(item.get("source_upload_id") or "").strip()
             provider = str(item.get("provider") or "").strip()
-            if not isinstance(embedding, list) or not embedding or not source_upload_id or not provider:
+            if (
+                not isinstance(embedding, list)
+                or not embedding
+                or not source_upload_id
+                or not provider
+            ):
                 continue
             try:
                 vector = [float(value) for value in embedding if isinstance(value, (int, float))]
@@ -102,7 +109,9 @@ class UnknownFaceRegistry:
         with self._lock:
             samples = self.list_samples()
             for sample in samples:
-                if sample.source_upload_id == source and sample.face_index == max(0, int(face_index)):
+                if sample.source_upload_id == source and sample.face_index == max(
+                    0, int(face_index)
+                ):
                     return sample
 
             sample = UnknownFaceSample(
@@ -146,8 +155,10 @@ class UnknownFaceRegistry:
                     sample_ids=ids,
                     centroid_embedding=_normalize(vector),
                     sighting_count=sighting_count,
-                    first_seen_at=str(item.get("first_seen_at") or "") or datetime.now(UTC).isoformat(),
-                    last_seen_at=str(item.get("last_seen_at") or "") or datetime.now(UTC).isoformat(),
+                    first_seen_at=str(item.get("first_seen_at") or "")
+                    or datetime.now(UTC).isoformat(),
+                    last_seen_at=str(item.get("last_seen_at") or "")
+                    or datetime.now(UTC).isoformat(),
                     familiarity_state=str(item.get("familiarity_state") or "new"),
                     suggested_for_enrollment=bool(item.get("suggested_for_enrollment") or False),
                     promoted=bool(item.get("promoted") or False),
@@ -255,7 +266,9 @@ class UnknownFaceRegistry:
             if sample.unknown_sample_id not in existing.sample_ids:
                 existing.sample_ids.append(sample.unknown_sample_id)
             existing.sighting_count = len(existing.sample_ids)
-            existing.centroid_embedding = _centroid_for_sample_ids(existing.sample_ids, self.list_samples())
+            existing.centroid_embedding = _centroid_for_sample_ids(
+                existing.sample_ids, self.list_samples()
+            )
             existing.last_seen_at = max(existing.last_seen_at, sample.created_at)
             if existing.sighting_count >= self.familiarity_min_samples:
                 existing.familiarity_state = "familiar"
@@ -302,10 +315,12 @@ def _cosine_similarity(left: list[float], right: list[float]) -> float:
     nb = sqrt(sum(value * value for value in b))
     if na <= 0 or nb <= 0:
         return 0.0
-    return max(-1.0, min(1.0, sum(x * y for x, y in zip(a, b)) / (na * nb)))
+    return max(-1.0, min(1.0, sum(x * y for x, y in zip(a, b, strict=False)) / (na * nb)))
 
 
-def _centroid_for_sample_ids(sample_ids: list[str], samples: list[UnknownFaceSample]) -> list[float]:
+def _centroid_for_sample_ids(
+    sample_ids: list[str], samples: list[UnknownFaceSample]
+) -> list[float]:
     by_id = {sample.unknown_sample_id: sample for sample in samples}
     vectors = [by_id[sample_id].embedding for sample_id in sample_ids if sample_id in by_id]
     if not vectors:
@@ -313,4 +328,3 @@ def _centroid_for_sample_ids(sample_ids: list[str], samples: list[UnknownFaceSam
     dim = min(len(vector) for vector in vectors)
     centroid = [sum(vector[index] for vector in vectors) / len(vectors) for index in range(dim)]
     return _normalize(centroid)
-

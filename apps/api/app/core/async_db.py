@@ -27,7 +27,9 @@ def get_async_sessionmaker():
     global async_engine, AsyncSessionLocal
     if AsyncSessionLocal is None:
         async_engine = create_async_engine(async_database_url(settings.database_url), future=True)
-        AsyncSessionLocal = async_sessionmaker(async_engine, expire_on_commit=False, autoflush=False)
+        AsyncSessionLocal = async_sessionmaker(
+            async_engine, expire_on_commit=False, autoflush=False
+        )
     return AsyncSessionLocal
 
 

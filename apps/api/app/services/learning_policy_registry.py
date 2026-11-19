@@ -6,7 +6,6 @@ from dataclasses import asdict, dataclass
 from datetime import UTC, datetime
 from pathlib import Path
 
-
 POLICY_PRESETS = {
     "conservative": {
         "auto_reinforcement_enabled": False,
@@ -86,11 +85,25 @@ class LearningPolicyRegistry:
         base = self._record_for_preset(preset)
         return LearningPolicyRecord(
             preset=base.preset,
-            auto_reinforcement_enabled=bool(payload.get("auto_reinforcement_enabled", base.auto_reinforcement_enabled)),
-            high_confidence_threshold=_float(payload.get("high_confidence_threshold"), base.high_confidence_threshold),
-            min_reinforcement_signals=max(1, int(payload.get("min_reinforcement_signals") or base.min_reinforcement_signals)),
-            max_reinforcement_amount=max(0.0, min(1.0, _float(payload.get("max_reinforcement_amount"), base.max_reinforcement_amount))),
-            review_budget_per_session=max(1, int(payload.get("review_budget_per_session") or base.review_budget_per_session)),
+            auto_reinforcement_enabled=bool(
+                payload.get("auto_reinforcement_enabled", base.auto_reinforcement_enabled)
+            ),
+            high_confidence_threshold=_float(
+                payload.get("high_confidence_threshold"), base.high_confidence_threshold
+            ),
+            min_reinforcement_signals=max(
+                1, int(payload.get("min_reinforcement_signals") or base.min_reinforcement_signals)
+            ),
+            max_reinforcement_amount=max(
+                0.0,
+                min(
+                    1.0,
+                    _float(payload.get("max_reinforcement_amount"), base.max_reinforcement_amount),
+                ),
+            ),
+            review_budget_per_session=max(
+                1, int(payload.get("review_budget_per_session") or base.review_budget_per_session)
+            ),
             updated_at=str(payload.get("updated_at") or "") or datetime.now(UTC).isoformat(),
         )
 

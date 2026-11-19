@@ -20,4 +20,3 @@ if Celery is not None:
     celery_app.conf.accept_content = ["json"]
 else:  # pragma: no cover - exercised through optional dependency checks
     celery_app = None
-

@@ -6,7 +6,6 @@ from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from uuid import uuid4
 
-
 JobHandler = Callable[[dict[str, object]], dict[str, object]]
 
 
@@ -93,7 +92,9 @@ class CeleryJobBackend(JobBackend):
         *,
         queue: str = "default",
     ) -> JobRecord:
-        task = self.celery_app.send_task(task_name, args=[_redact_payload(payload or {})], queue=queue)
+        task = self.celery_app.send_task(
+            task_name, args=[_redact_payload(payload or {})], queue=queue
+        )
         return JobRecord(
             job_id=str(task.id),
             task_name=task_name,
@@ -125,6 +126,13 @@ def build_job_backend(kind: str, *, handlers: dict[str, JobHandler] | None = Non
 
 
 def _redact_payload(payload: dict[str, object]) -> dict[str, object]:
-    blocked = {"path", "file_path", "source_image_path", "upload_path", "raw_image", "embedding", "vector"}
+    blocked = {
+        "path",
+        "file_path",
+        "source_image_path",
+        "upload_path",
+        "raw_image",
+        "embedding",
+        "vector",
+    }
     return {str(key): value for key, value in payload.items() if str(key).lower() not in blocked}
-

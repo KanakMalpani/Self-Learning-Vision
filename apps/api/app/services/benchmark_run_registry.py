@@ -87,7 +87,9 @@ class BenchmarkRunRegistry:
             label=label,
             notes=str(item.get("notes") or "") or None,
             benchmark_case_ids=_string_list(item.get("benchmark_case_ids")),
-            provider_selections=provider_selections if isinstance(provider_selections, dict) else {},
+            provider_selections=(
+                provider_selections if isinstance(provider_selections, dict) else {}
+            ),
             metrics=metrics if isinstance(metrics, dict) else {},
             created_at=str(item.get("created_at") or "") or datetime.now(UTC).isoformat(),
         )

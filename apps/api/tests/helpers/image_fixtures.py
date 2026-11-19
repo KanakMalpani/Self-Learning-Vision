@@ -5,7 +5,9 @@ from pathlib import Path
 from PIL import Image
 
 
-def write_test_image(path: Path, size: tuple[int, int] = (16, 16), color: tuple[int, int, int] = (128, 128, 128)) -> None:
+def write_test_image(
+    path: Path, size: tuple[int, int] = (16, 16), color: tuple[int, int, int] = (128, 128, 128)
+) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     image = Image.new("RGB", size, color=color)
     image.save(path, format="JPEG", quality=95, subsampling=0)

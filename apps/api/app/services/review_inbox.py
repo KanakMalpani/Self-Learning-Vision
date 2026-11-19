@@ -2,7 +2,10 @@ from __future__ import annotations
 
 from typing import Any
 
-from app.services.contradiction_detector import detect_memory_contradictions, record_conflict_signals
+from app.services.contradiction_detector import (
+    detect_memory_contradictions,
+    record_conflict_signals,
+)
 from app.services.correction_log_registry import CorrectionLogRecord
 from app.services.learning_replay import build_replay_suggestions
 from app.services.learning_signal_registry import LearningSignalRecord, LearningSignalRegistry
@@ -19,7 +22,9 @@ def build_learning_review_inbox(
 ) -> dict[str, Any]:
     signals = signal_registry.list_signals()
     pending_signals = [signal for signal in signals if signal.status == "pending"]
-    pending_questions = [question for question in questions if getattr(question, "status", "") == "pending"]
+    pending_questions = [
+        question for question in questions if getattr(question, "status", "") == "pending"
+    ]
 
     contradictions: list[LearningSignalRecord] = []
     memory_health_rows = []

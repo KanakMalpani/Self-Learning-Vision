@@ -1,8 +1,9 @@
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Callable, Literal
+from typing import Literal
 
 from app.core.config import settings
 from app.schemas.api import FaceBox
@@ -66,12 +67,20 @@ class RecognitionCoreService:
         self._reference_registry_factory = reference_registry_factory
         self._embedding_provider = embedding_provider
         self._embedding_provider_factory = embedding_provider_factory
-        self._accept_threshold = accept_threshold if accept_threshold is not None else settings.recognition_accept_threshold
+        self._accept_threshold = (
+            accept_threshold
+            if accept_threshold is not None
+            else settings.recognition_accept_threshold
+        )
         self._tentative_threshold = (
-            tentative_threshold if tentative_threshold is not None else settings.recognition_tentative_threshold
+            tentative_threshold
+            if tentative_threshold is not None
+            else settings.recognition_tentative_threshold
         )
         self._min_quality_threshold = (
-            min_quality_threshold if min_quality_threshold is not None else settings.face_quality_min_threshold
+            min_quality_threshold
+            if min_quality_threshold is not None
+            else settings.face_quality_min_threshold
         )
         self._top_k = max(1, int(top_k or settings.recognition_top_k))
 
@@ -163,7 +172,11 @@ class RecognitionCoreService:
                 reason="Selected face index is out of range",
             )
 
-        return self._match_single_face(image_path=image_path, face_index=selected_face_index, face_box=face_boxes[selected_face_index])
+        return self._match_single_face(
+            image_path=image_path,
+            face_index=selected_face_index,
+            face_box=face_boxes[selected_face_index],
+        )
 
     def match_face_box(
         self,
@@ -189,7 +202,9 @@ class RecognitionCoreService:
             for index, face_box in enumerate(face_boxes)
         ]
 
-    def _match_single_face(self, *, image_path: str, face_index: int, face_box: FaceBox) -> FaceRecognitionResult:
+    def _match_single_face(
+        self, *, image_path: str, face_index: int, face_box: FaceBox
+    ) -> FaceRecognitionResult:
         provider = self._get_embedding_provider()
         if provider is None:
             return FaceRecognitionResult(
@@ -253,9 +268,13 @@ class RecognitionCoreService:
         tentative = not accepted and top_candidate.raw_confidence >= self._tentative_threshold
         matched_record = None
         if accepted:
-            matched_record = self._get_reference_registry().mark_seen(name_or_alias=top_candidate.name_or_alias)
+            matched_record = self._get_reference_registry().mark_seen(
+                name_or_alias=top_candidate.name_or_alias
+            )
         elif tentative:
-            matched_record = self._get_reference_registry().find_by_name(name_or_alias=top_candidate.name_or_alias)
+            matched_record = self._get_reference_registry().find_by_name(
+                name_or_alias=top_candidate.name_or_alias
+            )
         return FaceRecognitionResult(
             face_index=face_index,
             face_box=face_box,
@@ -359,4 +378,3 @@ class RecognitionCoreService:
         if self._reference_registry_factory is not None:
             return self._reference_registry_factory()
         return self._reference_registry
-

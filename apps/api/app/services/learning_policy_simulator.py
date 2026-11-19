@@ -26,7 +26,8 @@ def simulate_learning_policy(
             for signal in learning_signals
             if signal.status == "pending"
             and signal.entity_id == entity.entity_id
-            and signal.signal_type in {"memory_run_match", "positive_observation", "active_learning_confirmation"}
+            and signal.signal_type
+            in {"memory_run_match", "positive_observation", "active_learning_confirmation"}
             and signal.confidence >= policy.high_confidence_threshold
         ]
         health = build_memory_health(
@@ -36,22 +37,41 @@ def simulate_learning_policy(
             learning_signals=learning_signals,
         )
         if entity.lifecycle_state in {"archived", "forgotten", "uncertain"}:
-            blocked.append({"entity_id": entity.entity_id, "label": entity.label, "reason": entity.lifecycle_state})
+            blocked.append(
+                {
+                    "entity_id": entity.entity_id,
+                    "label": entity.label,
+                    "reason": entity.lifecycle_state,
+                }
+            )
             continue
         if entity.lifecycle_state == "candidate" and entity.domain_type == "person":
-            needs_review.append({"entity_id": entity.entity_id, "label": entity.label, "reason": "person identity review required"})
+            needs_review.append(
+                {
+                    "entity_id": entity.entity_id,
+                    "label": entity.label,
+                    "reason": "person identity review required",
+                }
+            )
             continue
-        if policy.auto_reinforcement_enabled and len(matching_signals) >= policy.min_reinforcement_signals:
+        if (
+            policy.auto_reinforcement_enabled
+            and len(matching_signals) >= policy.min_reinforcement_signals
+        ):
             auto_reinforce.append(
                 {
                     "entity_id": entity.entity_id,
                     "label": entity.label,
                     "signal_count": len(matching_signals),
-                    "estimated_amount": min(policy.max_reinforcement_amount, 0.03 * len(matching_signals)),
+                    "estimated_amount": min(
+                        policy.max_reinforcement_amount, 0.03 * len(matching_signals)
+                    ),
                 }
             )
         elif health["state"] in {"watch", "needs_review"}:
-            needs_review.append({"entity_id": entity.entity_id, "label": entity.label, "reason": health["state"]})
+            needs_review.append(
+                {"entity_id": entity.entity_id, "label": entity.label, "reason": health["state"]}
+            )
 
     return {
         "preset": policy.preset,

@@ -38,7 +38,10 @@ class FaceReferenceRegistry:
                 continue
             embedding = item.get("embedding")
             name = str(item.get("name_or_alias") or "").strip()
-            provider = str(item.get("provider") or "local-face-embedding").strip() or "local-face-embedding"
+            provider = (
+                str(item.get("provider") or "local-face-embedding").strip()
+                or "local-face-embedding"
+            )
             if not name or not isinstance(embedding, list) or not embedding:
                 continue
             try:
@@ -186,4 +189,3 @@ class FaceReferenceRegistry:
             seen.add(lowered)
             tags.append(tag)
         return tags
-

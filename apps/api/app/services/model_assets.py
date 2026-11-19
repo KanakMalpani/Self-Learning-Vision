@@ -66,4 +66,3 @@ def provider_health(model_cache_dir: str) -> list[ProviderHealth]:
         ),
         insightface_health(model_cache_dir),
     ]
-

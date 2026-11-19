@@ -7,12 +7,16 @@ from app.services.active_learning_registry import ActiveLearningRegistry
 from app.services.contradiction_detector import detect_memory_contradictions
 from app.services.correction_log_registry import CorrectionLogRecord
 from app.services.evidence_bundles import build_evidence_bundles
-from app.services.learning_replay import apply_learning_replay
 from app.services.learning_policy_registry import LearningPolicyRegistry
 from app.services.learning_policy_simulator import simulate_learning_policy
+from app.services.learning_replay import apply_learning_replay
 from app.services.learning_signal_registry import LearningSignalRegistry
 from app.services.learning_timeline import build_learning_timeline
-from app.services.memory_entity_registry import MemoryEntityRecord, MemoryEntityRegistry, MemoryObservation
+from app.services.memory_entity_registry import (
+    MemoryEntityRecord,
+    MemoryEntityRegistry,
+    MemoryObservation,
+)
 from app.services.memory_health import build_memory_health
 from app.services.memory_lifecycle_policy import MemoryLifecyclePolicy
 from app.services.review_inbox import build_learning_review_inbox
@@ -190,7 +194,11 @@ def test_conflicts_evidence_and_health_use_related_learning_signals(tmp_path: Pa
     )
 
     assert len(conflicts) >= 2
-    assert {bundle["source"] for bundle in bundles} >= {"memory_observations", "corrections", "learning_signals"}
+    assert {bundle["source"] for bundle in bundles} >= {
+        "memory_observations",
+        "corrections",
+        "learning_signals",
+    }
     assert health["state"] == "needs_review"
     assert health["contradiction_count"] >= 2
 

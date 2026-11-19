@@ -17,7 +17,9 @@ def build_evidence_bundles(
 ) -> list[dict[str, Any]]:
     bundles: list[dict[str, Any]] = []
     if entity.observations:
-        confidences = [item.confidence for item in entity.observations if item.confidence is not None]
+        confidences = [
+            item.confidence for item in entity.observations if item.confidence is not None
+        ]
         bundles.append(
             {
                 "bundle_id": f"observations:{entity.entity_id}",
@@ -49,12 +51,20 @@ def build_evidence_bundles(
                 "source": "memory_lifecycle",
                 "event_count": len(entity.lifecycle_events),
                 "confidence_delta": round(
-                    sum(item.confidence_after - item.confidence_before for item in entity.lifecycle_events),
+                    sum(
+                        item.confidence_after - item.confidence_before
+                        for item in entity.lifecycle_events
+                    ),
                     6,
                 ),
-                "risk_level": "medium"
-                if any(item.event_type in {"contradiction", "not_this"} for item in entity.lifecycle_events)
-                else "low",
+                "risk_level": (
+                    "medium"
+                    if any(
+                        item.event_type in {"contradiction", "not_this"}
+                        for item in entity.lifecycle_events
+                    )
+                    else "low"
+                ),
                 "created_at": _latest([item.created_at for item in entity.lifecycle_events]),
                 "items": [
                     {
@@ -68,7 +78,11 @@ def build_evidence_bundles(
             }
         )
 
-    related_corrections = [item for item in corrections if item.target_entity_id == entity.entity_id and not item.undone]
+    related_corrections = [
+        item
+        for item in corrections
+        if item.target_entity_id == entity.entity_id and not item.undone
+    ]
     if related_corrections:
         bundles.append(
             {
@@ -78,9 +92,13 @@ def build_evidence_bundles(
                 "source": "corrections",
                 "event_count": len(related_corrections),
                 "confidence_delta": 0.0,
-                "risk_level": "high"
-                if any(item.operation_type in {"not_this", "split"} for item in related_corrections)
-                else "medium",
+                "risk_level": (
+                    "high"
+                    if any(
+                        item.operation_type in {"not_this", "split"} for item in related_corrections
+                    )
+                    else "medium"
+                ),
                 "created_at": _latest([item.created_at for item in related_corrections]),
                 "items": [
                     {
@@ -98,9 +116,14 @@ def build_evidence_bundles(
         item
         for item in active_learning_questions
         if getattr(item, "context", {}).get("entity_id") == entity.entity_id
-        or str(getattr(item, "candidate_label", "") or "").strip().lower() == entity.label.strip().lower()
+        or str(getattr(item, "candidate_label", "") or "").strip().lower()
+        == entity.label.strip().lower()
     ]
-    answered = [item for item in related_questions if getattr(item, "status", "") in {"answered", "dismissed"}]
+    answered = [
+        item
+        for item in related_questions
+        if getattr(item, "status", "") in {"answered", "dismissed"}
+    ]
     if answered:
         bundles.append(
             {
@@ -110,9 +133,14 @@ def build_evidence_bundles(
                 "source": "active_learning",
                 "event_count": len(answered),
                 "confidence_delta": 0.0,
-                "risk_level": "medium"
-                if any(getattr(getattr(item, "response", None), "action", "") == "reject" for item in answered)
-                else "low",
+                "risk_level": (
+                    "medium"
+                    if any(
+                        getattr(getattr(item, "response", None), "action", "") == "reject"
+                        for item in answered
+                    )
+                    else "low"
+                ),
                 "created_at": _latest([getattr(item, "updated_at", "") for item in answered]),
                 "items": [
                     {
@@ -136,9 +164,11 @@ def build_evidence_bundles(
                 "source": "learning_signals",
                 "event_count": len(related_signals),
                 "confidence_delta": round(sum(item.learning_value for item in related_signals), 6),
-                "risk_level": "high"
-                if any(item.risk_level == "high" for item in related_signals)
-                else "medium",
+                "risk_level": (
+                    "high"
+                    if any(item.risk_level == "high" for item in related_signals)
+                    else "medium"
+                ),
                 "created_at": _latest([item.created_at for item in related_signals]),
                 "items": [
                     {

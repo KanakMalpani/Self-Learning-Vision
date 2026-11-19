@@ -79,7 +79,9 @@ def test_pgvector_store_is_optional_when_dependency_missing() -> None:
 
 
 def test_inline_job_backend_runs_handlers_and_redacts_payload() -> None:
-    backend = InlineJobBackend({"learning.replay": lambda payload: {"entity_id": payload["entity_id"]}})
+    backend = InlineJobBackend(
+        {"learning.replay": lambda payload: {"entity_id": payload["entity_id"]}}
+    )
 
     job = backend.enqueue(
         "learning.replay",
@@ -100,4 +102,3 @@ def test_job_backend_factory_defaults_to_inline() -> None:
 
     assert job.status == "succeeded"
     assert job.result == {"queued_inline": True}
-

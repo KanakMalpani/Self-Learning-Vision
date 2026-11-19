@@ -101,7 +101,9 @@ def test_provider_marketplace_includes_file_backed_plugins(tmp_path: Path) -> No
         """,
         encoding="utf-8",
     )
-    marketplace = ProviderMarketplace(plugin_registry=ProviderPluginRegistry([tmp_path], include_default=False))
+    marketplace = ProviderMarketplace(
+        plugin_registry=ProviderPluginRegistry([tmp_path], include_default=False)
+    )
 
     card = marketplace.find_card("local-demo-plugin", privacy_local_only=True, allow_hosted=False)
     provider = marketplace.build_face_embedding_provider("local-demo-plugin")

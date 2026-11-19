@@ -24,7 +24,7 @@ flowchart TD
 
 ## Components
 
-- `apps/api/app/main.py` exposes upload, Memory Run, enrollment, history, and deletion APIs.
+- `apps/api/app/main.py` assembles the app. HTTP routes live in `apps/api/app/api/routes/` (upload, Memory Run, enrollment, history, and deletion).
 - `RecognitionCoreService` handles face detection, quality checks, embedding extraction, matching, and memory summaries.
 - `FaceReferenceRegistry` stores per-user enrolled identities as local JSON records.
 - `MemoryEntityRegistry` stores generic domain entities such as `person`, `object`, `place`, `scene`, `event`, and custom user-defined domains.
