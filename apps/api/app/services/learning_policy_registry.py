@@ -1,10 +1,11 @@
 from __future__ import annotations
 
-import json
 import threading
 from dataclasses import asdict, dataclass
 from datetime import UTC, datetime
 from pathlib import Path
+
+from app.services.json_store import read_json, write_json
 
 POLICY_PRESETS = {
     "conservative": {
@@ -49,11 +50,8 @@ class LearningPolicyRegistry:
         self._lock = threading.Lock()
 
     def get(self) -> LearningPolicyRecord:
-        if not self.path.exists():
-            return self._record_for_preset("balanced")
-        try:
-            payload = json.loads(self.path.read_text(encoding="utf-8"))
-        except Exception:
+        payload = read_json(self.path, None)
+        if not isinstance(payload, dict):
             return self._record_for_preset("balanced")
         return self._record_from_payload(payload)
 
@@ -108,9 +106,7 @@ class LearningPolicyRegistry:
         )
 
     def _save_payload(self, payload: dict[str, object]) -> None:
-        temp_path = self.path.with_suffix(".tmp")
-        temp_path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
-        temp_path.replace(self.path)
+        write_json(self.path, payload)
 
 
 def _float(value: object, fallback: float) -> float:

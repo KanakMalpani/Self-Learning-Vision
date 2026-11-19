@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { readApiFailure } from "@/lib/api-error";
 import { register } from "@/lib/api-client";
 import { setToken, setUserId } from "@/lib/auth";
 import { useAuth } from "@/lib/auth-context";
@@ -49,8 +50,8 @@ export default function RegisterPage() {
       }
       markAuthenticated();
       router.push("/");
-    } catch (err: any) {
-      setError(err.message || "Registration failed");
+    } catch (error: unknown) {
+      setError(readApiFailure(error, "Registration failed").message);
     } finally {
       setIsLoading(false);
     }

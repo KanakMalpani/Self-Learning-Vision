@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import json
 import threading
 from dataclasses import asdict, dataclass
 from datetime import UTC, datetime
@@ -8,6 +7,8 @@ from math import sqrt
 from pathlib import Path
 from typing import Any
 from uuid import uuid4
+
+from app.services.json_store import read_json_list, write_json
 
 
 @dataclass
@@ -222,20 +223,10 @@ class UnknownFaceRegistry:
         return updated
 
     def _load_payload(self) -> list[dict[str, Any]]:
-        if not self.path.exists():
-            return []
-        try:
-            payload = json.loads(self.path.read_text(encoding="utf-8"))
-        except Exception:
-            return []
-        if isinstance(payload, list):
-            return payload
-        return []
+        return read_json_list(self.path)
 
     def _save_payload(self, payload: list[dict[str, Any]]) -> None:
-        temp_path = self.path.with_suffix(".tmp")
-        temp_path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
-        temp_path.replace(self.path)
+        write_json(self.path, payload)
 
     def _assign_sample_to_cluster(self, sample: UnknownFaceSample) -> UnknownFaceCluster:
         clusters = self.list_clusters()
@@ -280,20 +271,10 @@ class UnknownFaceRegistry:
         return cluster
 
     def _load_cluster_payload(self) -> list[dict[str, Any]]:
-        if not self.cluster_path.exists():
-            return []
-        try:
-            payload = json.loads(self.cluster_path.read_text(encoding="utf-8"))
-        except Exception:
-            return []
-        if isinstance(payload, list):
-            return payload
-        return []
+        return read_json_list(self.cluster_path)
 
     def _save_cluster_payload(self, payload: list[dict[str, Any]]) -> None:
-        temp_path = self.cluster_path.with_suffix(".tmp")
-        temp_path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
-        temp_path.replace(self.cluster_path)
+        write_json(self.cluster_path, payload)
 
 
 def _normalize(vector: list[float]) -> list[float]:

@@ -28,7 +28,6 @@ class Settings(BaseSettings):
     provider_plugin_dirs: str = ""
     vector_store: str = "local_json"
     job_backend: str = "inline"
-    redis_url: str = "redis://redis:6379/0"
     privacy_local_only_mode: bool = True
     privacy_allow_hosted_providers: bool = False
     face_quality_min_threshold: float = 0.40

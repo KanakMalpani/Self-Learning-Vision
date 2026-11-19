@@ -21,11 +21,12 @@ def test_provider_marketplace_lists_core_capabilities() -> None:
     assert "face_embedding" in PROVIDER_CAPABILITIES
     assert by_id["local-face-embedding"].status in {"ready", "unavailable"}
     assert by_id["local-face-embedding"].images_leave_device is False
-    assert by_id["template-paid-provider"].status == "blocked_by_privacy_policy"
-    assert "multimodal_reasoning" in by_id["template-paid-provider"].capabilities
+    assert by_id["insightface"].images_leave_device is False
+    assert "template-paid-provider" not in by_id
+    assert "custom-http-provider" not in by_id
 
 
-def test_provider_marketplace_allows_hosted_when_privacy_allows() -> None:
+def test_provider_marketplace_has_no_hosted_template_cards() -> None:
     marketplace = ProviderMarketplace()
 
     card = marketplace.find_card(
@@ -34,9 +35,7 @@ def test_provider_marketplace_allows_hosted_when_privacy_allows() -> None:
         allow_hosted=True,
     )
 
-    assert card is not None
-    assert card.status in {"ready", "not_configured"}
-    assert card.images_leave_device is True
+    assert card is None
 
 
 def test_provider_selection_registry_persists_selection(tmp_path: Path) -> None:

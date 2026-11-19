@@ -40,8 +40,6 @@ Each provider card documents:
 
 - `local-face-embedding`: default local/free face embedding provider.
 - `insightface`: optional local InsightFace/ArcFace provider.
-- `template-paid-provider`: hosted/paid provider template.
-- `custom-http-provider`: template for self-hosted, edge, or internal HTTP providers.
 
 ## API
 

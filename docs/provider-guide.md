@@ -48,7 +48,6 @@ Provider scaffolding lives in `apps/api/app/providers`:
 - `base.py` exposes the provider contract.
 - `local.py` exposes the built-in local provider.
 - `insightface_provider.py` exposes the InsightFace provider.
-- `template_paid_provider.py` is a starter class for paid or hosted providers.
 - Marketplace metadata and provider selection live in `apps/api/app/services/provider_marketplace.py`.
 
 See [provider-marketplace.md](provider-marketplace.md).

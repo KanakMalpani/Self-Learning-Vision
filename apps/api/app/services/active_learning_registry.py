@@ -1,12 +1,13 @@
 from __future__ import annotations
 
-import json
 import threading
 from dataclasses import asdict, dataclass, field
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any, Literal
 from uuid import uuid4
+
+from app.services.json_store import read_json_list, write_json
 
 QuestionStatus = Literal["pending", "answered", "dismissed"]
 QuestionType = Literal["confirm_match", "label_unknown_cluster", "review_memory"]
@@ -194,18 +195,10 @@ class ActiveLearningRegistry:
         return None
 
     def _load_payload(self) -> list[dict[str, Any]]:
-        if not self.path.exists():
-            return []
-        try:
-            payload = json.loads(self.path.read_text(encoding="utf-8"))
-        except Exception:
-            return []
-        return payload if isinstance(payload, list) else []
+        return read_json_list(self.path)
 
     def _save_payload(self, payload: list[dict[str, Any]]) -> None:
-        temp_path = self.path.with_suffix(".tmp")
-        temp_path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
-        temp_path.replace(self.path)
+        write_json(self.path, payload)
 
     def _question_from_payload(self, item: dict[str, Any]) -> ActiveLearningQuestion | None:
         if not isinstance(item, dict):

@@ -1,5 +1,4 @@
 param(
-    [switch]$WithOllama,
     [switch]$NoBrowser
 )
 
@@ -21,17 +20,13 @@ if (-not (Test-Path ".env") -and (Test-Path ".env.example")) {
     Write-Host "Created .env from .env.example"
 }
 
-if ($WithOllama) {
-    docker compose --profile ollama up --build -d
-} else {
-    docker compose up --build -d
-}
+docker compose up --build -d
 
 if ($LASTEXITCODE -ne 0) {
     Write-Error "Docker Compose failed to start the app stack."
 }
 
-Write-Host "Jarvis is starting."
+Write-Host "Self-Learning Vision is starting."
 Write-Host "Web: http://localhost:3000"
 Write-Host "API: http://localhost:8000"
 

@@ -8,6 +8,8 @@ from pathlib import Path
 from typing import Any
 from uuid import uuid4
 
+from app.services.json_store import read_json_list, write_json
+
 
 @dataclass
 class FaceReferenceRecord:
@@ -159,20 +161,10 @@ class FaceReferenceRegistry:
         return self.reference_count() > 0
 
     def _load_payload(self) -> list[dict[str, Any]]:
-        if not self.path.exists():
-            return []
-        try:
-            payload = json.loads(self.path.read_text(encoding="utf-8"))
-        except Exception:
-            return []
-        if isinstance(payload, list):
-            return payload
-        return []
+        return read_json_list(self.path)
 
     def _save_payload(self, payload: list[dict[str, Any]]) -> None:
-        temp_path = self.path.with_suffix(".tmp")
-        temp_path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
-        temp_path.replace(self.path)
+        write_json(self.path, payload)
 
     def _sanitize_tags(self, value: object) -> list[str]:
         if not isinstance(value, list):

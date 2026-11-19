@@ -7,7 +7,6 @@ Start with:
 - `base.py`: provider contract.
 - `local.py`: local development provider alias.
 - `insightface_provider.py`: InsightFace/ArcFace provider alias.
-- `template_paid_provider.py`: copy this for hosted or paid integrations.
 - `manifests/*.json`: file-backed provider plugin cards.
 - `base.py` also includes marketplace-ready contracts for detection, classification, captioning, OCR, and multimodal reasoning.
 

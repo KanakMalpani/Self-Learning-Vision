@@ -2,4 +2,4 @@ $ErrorActionPreference = "Stop"
 
 Set-Location (Join-Path $PSScriptRoot "..")
 docker compose down
-Write-Host "Jarvis has stopped."
+Write-Host "Self-Learning Vision has stopped."

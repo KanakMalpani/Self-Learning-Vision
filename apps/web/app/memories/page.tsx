@@ -51,12 +51,12 @@ function MemoriesContent() {
   }
 
   return (
-    <main className="max-w-6xl mx-auto px-4 py-8 space-y-6">
-      <header className="space-y-2">
-        <p className="text-sm text-gray-400">Structured memory</p>
-        <h1 className="text-3xl font-bold">Memories</h1>
-        <p className="text-sm text-gray-500">
-          Create people, objects, places, scenes, events, documents, products, and inventory memories from templates.
+    <main className="page space-y-8">
+      <header className="space-y-3">
+        <p className="kicker">Structured memory</p>
+        <h1 className="text-5xl leading-none">Memories</h1>
+        <p className="lead">
+          Keep people, objects, places, scenes, events, documents, products, and inventory on this machine.
         </p>
       </header>
 

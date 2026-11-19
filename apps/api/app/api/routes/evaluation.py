@@ -34,6 +34,22 @@ from app.services.evaluation import (
 router = APIRouter(tags=["evaluation"])
 
 
+def _context_metrics(context: dict[str, object]) -> dict[str, object]:
+    active_learning = context["active_learning_registry"]
+    signal_registry = context["learning_signal_registry"]
+    pending_count = active_learning.pending_count() + signal_registry.pending_count()
+    return build_evaluation_metrics(
+        memory_runs=context["memory_runs"],
+        active_learning_questions=context["active_learning_questions"],
+        corrections=context["corrections"],
+        memory_entities=context["memory_entities"],
+        learning_signals=context["learning_signals"],
+        memory_health_distribution=context["memory_health_distribution"],
+        review_inbox_pending_count=pending_count,
+        lifecycle_summary=context["lifecycle_summary"],
+    )
+
+
 @router.get("/api/v1/evaluation/summary")
 def evaluation_summary(
     db: Session = Depends(get_db),
@@ -55,17 +71,7 @@ def evaluation_summary(
         for domain_type in entity_registry.list_domain_types()
     }
     lifecycle_summary = context["lifecycle_summary"]
-    metrics = build_evaluation_metrics(
-        memory_runs=context["memory_runs"],
-        active_learning_questions=context["active_learning_questions"],
-        corrections=context["corrections"],
-        memory_entities=context["memory_entities"],
-        learning_signals=context["learning_signals"],
-        memory_health_distribution=context["memory_health_distribution"],
-        review_inbox_pending_count=active_learning_registry.pending_count()
-        + context["learning_signal_registry"].pending_count(),
-        lifecycle_summary=lifecycle_summary,
-    )
+    metrics = _context_metrics(context)
 
     return JSONResponse(
         {
@@ -101,19 +107,7 @@ def evaluation_metrics(
     current_user: User = Depends(get_current_user),
 ) -> EvaluationMetricsResponse:
     context = _evaluation_context(db=db, current_user=current_user)
-    return EvaluationMetricsResponse(
-        **build_evaluation_metrics(
-            memory_runs=context["memory_runs"],
-            active_learning_questions=context["active_learning_questions"],
-            corrections=context["corrections"],
-            memory_entities=context["memory_entities"],
-            learning_signals=context["learning_signals"],
-            memory_health_distribution=context["memory_health_distribution"],
-            review_inbox_pending_count=context["active_learning_registry"].pending_count()
-            + context["learning_signal_registry"].pending_count(),
-            lifecycle_summary=context["lifecycle_summary"],
-        )
-    )
+    return EvaluationMetricsResponse(**_context_metrics(context))
 
 
 @router.get("/api/v1/evaluation/dataset", response_model=EvaluationDatasetResponse)
@@ -137,17 +131,7 @@ def evaluation_provider_scorecard(
     current_user: User = Depends(get_current_user),
 ) -> ProviderScorecardResponse:
     context = _evaluation_context(db=db, current_user=current_user)
-    metrics = build_evaluation_metrics(
-        memory_runs=context["memory_runs"],
-        active_learning_questions=context["active_learning_questions"],
-        corrections=context["corrections"],
-        memory_entities=context["memory_entities"],
-        learning_signals=context["learning_signals"],
-        memory_health_distribution=context["memory_health_distribution"],
-        review_inbox_pending_count=context["active_learning_registry"].pending_count()
-        + context["learning_signal_registry"].pending_count(),
-        lifecycle_summary=context["lifecycle_summary"],
-    )
+    metrics = _context_metrics(context)
     provider_selection = context["provider_selection"]
     return ProviderScorecardResponse(
         **build_provider_scorecard(
@@ -181,17 +165,7 @@ def create_evaluation_benchmark_run(
     current_user: User = Depends(get_current_user),
 ) -> BenchmarkRunItem:
     context = _evaluation_context(db=db, current_user=current_user)
-    metrics = build_evaluation_metrics(
-        memory_runs=context["memory_runs"],
-        active_learning_questions=context["active_learning_questions"],
-        corrections=context["corrections"],
-        memory_entities=context["memory_entities"],
-        learning_signals=context["learning_signals"],
-        memory_health_distribution=context["memory_health_distribution"],
-        review_inbox_pending_count=context["active_learning_registry"].pending_count()
-        + context["learning_signal_registry"].pending_count(),
-        lifecycle_summary=context["lifecycle_summary"],
-    )
+    metrics = _context_metrics(context)
     provider_selection = context["provider_selection"]
     record = get_benchmark_run_registry(str(current_user.id)).add_run(
         label=payload.label,

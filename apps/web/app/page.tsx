@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import type {
   ActivityEntry,
@@ -13,13 +13,12 @@ import UploadForm from "@/components/UploadForm";
 import ActivityFeed from "@/components/ActivityFeed";
 import Corkboard from "@/components/Corkboard";
 import MemoryReportPanel from "@/components/MemoryReportPanel";
+import { readApiFailure } from "@/lib/api-error";
 import { fetchMemoryRun, getMemoryRunStreamUrlWithCursor } from "@/lib/api-client";
 import { startMemoryRunRealtime } from "@/lib/memory-run-realtime";
 import { useAuth } from "@/lib/auth-context";
 import { AUTH_ENABLED } from "@/lib/auth-mode";
 import { ProtectedRoute } from "@/lib/protected-route";
-
-const POLL_INTERVAL = 2000;
 
 const statusLabels: Record<MemoryRunStatus, string> = {
   queued: "queued",
@@ -43,33 +42,29 @@ function HomeContent() {
   const [realtimeStatus, setRealtimeStatus] = useState<"connecting" | "live" | "fallback">("connecting");
   const [lastUpdatedAt, setLastUpdatedAt] = useState<string | null>(null);
 
+  const refreshMemoryRun = useCallback(
+    async (runId: string) => {
+      try {
+        const data = await fetchMemoryRun(runId);
+        setMemoryRun(data);
+        setLastUpdatedAt(new Date().toISOString());
+      } catch (error: unknown) {
+        const failure = readApiFailure(error, "Failed to fetch memory result");
+        if (failure.status === 401) {
+          logout();
+          router.push("/login?message=Session+expired");
+          return;
+        }
+        setError(failure.message);
+      }
+    },
+    [logout, router]
+  );
+
   useEffect(() => {
     if (!memory_runId) return;
-    let active = true;
-    const poll = async () => {
-      try {
-        const data = await fetchMemoryRun(memory_runId);
-        if (active) setMemoryRun(data);
-        setLastUpdatedAt(new Date().toISOString());
-      } catch (err: any) {
-        if (active) {
-          // Handle 401 by logging out and redirecting
-          if (err.status === 401) {
-            logout();
-            router.push("/login?message=Session+expired");
-          } else {
-            setError(err.message || "Failed to fetch memory result");
-          }
-        }
-      }
-    };
-    poll();
-    const interval = setInterval(poll, POLL_INTERVAL);
-    return () => {
-      active = false;
-      clearInterval(interval);
-    };
-  }, [memory_runId, logout, router]);
+    void refreshMemoryRun(memory_runId);
+  }, [memory_runId, refreshMemoryRun]);
 
   useEffect(() => {
     setRealtimeStatus("connecting");
@@ -77,14 +72,7 @@ function HomeContent() {
       resolveStreamUrl: getMemoryRunStreamUrlWithCursor,
       onUpdate: (update) => {
         if (update.memory_run_id === memory_runId) {
-          void fetchMemoryRun(update.memory_run_id)
-            .then((payload) => {
-              setMemoryRun(payload);
-              setLastUpdatedAt(new Date().toISOString());
-            })
-            .catch(() => {
-              // Keep the current state until next successful poll/update.
-            });
+          void refreshMemoryRun(update.memory_run_id);
         }
         setRealtimeStatus("live");
       },
@@ -102,8 +90,7 @@ function HomeContent() {
         if (!memory_runId) {
           return;
         }
-        const data = await fetchMemoryRun(memory_runId);
-        setMemoryRun(data);
+        await refreshMemoryRun(memory_runId);
         setRealtimeStatus("fallback");
       },
       onModeChange: (mode) => {
@@ -113,7 +100,7 @@ function HomeContent() {
     });
 
     return () => stop();
-  }, [memory_runId]);
+  }, [memory_runId, refreshMemoryRun]);
 
   const handleLogout = () => {
     logout();
@@ -143,26 +130,26 @@ function HomeContent() {
   }, [memory_report, memory_run?.status]);
 
   return (
-    <main className="max-w-6xl mx-auto px-4 py-8 space-y-6">
-      <header className="card p-5 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-        <div>
-          <p className="text-sm text-gray-400">Local-first personal memory</p>
-          <h1 className="text-3xl font-bold">Self-Learning Vision</h1>
-          <p className="text-sm text-gray-500">Upload a photo, pick a face, and recall who they are from your local memory.</p>
+    <main className="page space-y-8">
+      <header className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
+        <div className="space-y-3">
+          <p className="kicker">Local memory</p>
+          <h1 className="text-5xl leading-none">Remember a face</h1>
+          <p className="lead">Upload a photo, pick a face, and match it against the people stored on this machine.</p>
         </div>
-        <div className="flex flex-wrap gap-2 items-center">
-          <span className="badge">Private & Local</span>
-          <span className="badge">No external lookup by default</span>
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="badge">Private</span>
+          <span className="badge">No web lookup</span>
           <button
             onClick={() => router.push("/memory-runs")}
-            className="px-3 py-1.5 text-sm font-medium rounded-md bg-white/10 text-gray-100 hover:bg-white/20 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-board-accent"
+            className="btn btn-quiet"
           >
-            Open Memory Runs
+            Open memory runs
           </button>
           {AUTH_ENABLED && (
             <button
               onClick={handleLogout}
-              className="px-3 py-1.5 text-sm font-medium rounded-md bg-gray-200 text-gray-800 hover:bg-gray-300 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
+              className="btn btn-quiet"
             >
               Logout
             </button>
@@ -173,18 +160,24 @@ function HomeContent() {
       <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="md:col-span-2 space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3" aria-label="Memory status overview">
-            <div className="card p-3">
-              <p className="text-xs uppercase tracking-wide text-gray-400">Updates</p>
+            <div className="card p-4">
+              <p className="kicker">Updates</p>
               <div className="flex items-center justify-between">
-                <p className="text-lg font-semibold">{realtimeMode === "sse" ? "Live" : "Polling"}</p>
-                <span className={`badge ${realtimeStatus === "live" ? "bg-emerald-700 text-white" : "bg-amber-600/70 text-white"}`}>
-                  {realtimeStatus === "live" ? "Healthy" : realtimeStatus === "connecting" ? "Connecting" : "Fallback"}
+                <p className="text-lg font-semibold">{memory_runId ? (realtimeMode === "sse" ? "Live" : "Polling") : "Idle"}</p>
+                <span className="badge">
+                  {!memory_runId
+                    ? "Ready"
+                    : realtimeStatus === "live"
+                      ? "Healthy"
+                      : realtimeStatus === "connecting"
+                        ? "Connecting"
+                        : "Fallback"}
                 </span>
               </div>
-              <p className="text-xs text-gray-500 mt-1">Keeps memory results fresh while you work.</p>
+              <p className="mt-2 text-sm text-[var(--muted)]">Keeps memory results fresh while you work.</p>
             </div>
-            <div className="card p-3">
-              <p className="text-xs uppercase tracking-wide text-gray-400">Memory Run</p>
+            <div className="card p-4">
+              <p className="kicker">Memory run</p>
               <div className="flex items-center justify-between gap-2">
                 <p className="text-lg font-semibold break-all">{currentMemoryRunLabel}</p>
                 <span className="badge bg-white/10 text-gray-100 capitalize">
@@ -197,12 +190,12 @@ function HomeContent() {
               {finalVerdict.hasResult && finalVerdict.isUnknown && (
                 <p className="text-xs text-amber-200 mt-1">Unknown (no trusted match)</p>
               )}
-              <p className="text-xs text-gray-500 mt-1">Last update: {lastUpdatedLabel}</p>
+              <p className="mt-2 text-sm text-[var(--muted)]">Last update: {lastUpdatedLabel}</p>
             </div>
-            <div className="card p-3">
-              <p className="text-xs uppercase tracking-wide text-gray-400">Upload</p>
+            <div className="card p-4">
+              <p className="kicker">Upload</p>
               <p className="text-lg font-semibold">{upload ? "File ready" : "Waiting for upload"}</p>
-              <p className="text-xs text-gray-500 mt-1">Detected faces and memory notes stay local.</p>
+              <p className="mt-2 text-sm text-[var(--muted)]">Detected faces and memory notes stay local.</p>
             </div>
           </div>
 
@@ -227,9 +220,13 @@ function HomeContent() {
         </div>
       </section>
 
-      <footer className="text-xs text-gray-500 space-y-1">
+      <footer className="space-y-1 text-sm text-[var(--muted)]">
         <p>Default runs complete with local recognition on this machine.</p>
-        <p>Polling every 2 seconds when a run is active. Everything stays on this machine.</p>
+        <p>
+          {realtimeMode === "sse"
+            ? "Live updates while a run is active. Everything stays on this machine."
+            : "Checking for updates every few seconds while a run is active. Everything stays on this machine."}
+        </p>
       </footer>
     </main>
   );

@@ -79,49 +79,10 @@ class InlineJobBackend(JobBackend):
         return self.jobs.get(job_id)
 
 
-class CeleryJobBackend(JobBackend):
-    def __init__(self, celery_app) -> None:
-        if celery_app is None:
-            raise RuntimeError("Install celery extras before using JOB_BACKEND=celery")
-        self.celery_app = celery_app
-
-    def enqueue(
-        self,
-        task_name: str,
-        payload: dict[str, object] | None = None,
-        *,
-        queue: str = "default",
-    ) -> JobRecord:
-        task = self.celery_app.send_task(
-            task_name, args=[_redact_payload(payload or {})], queue=queue
-        )
-        return JobRecord(
-            job_id=str(task.id),
-            task_name=task_name,
-            queue=queue,
-            status="queued",
-            payload=_redact_payload(payload or {}),
-        )
-
-    def run_inline(self, task_name: str, payload: dict[str, object] | None = None) -> JobRecord:
-        return self.enqueue(task_name, payload or {}, queue="inline")
-
-    def get_status(self, job_id: str) -> JobRecord | None:
-        result = self.celery_app.AsyncResult(job_id)
-        return JobRecord(
-            job_id=job_id,
-            task_name="unknown",
-            status=str(result.status).lower(),
-            result=result.result if isinstance(result.result, dict) else None,
-            error=str(result.result) if result.failed() else None,
-        )
-
-
 def build_job_backend(kind: str, *, handlers: dict[str, JobHandler] | None = None) -> JobBackend:
-    if (kind or "inline").strip().lower() == "celery":
-        from app.core.celery_app import celery_app
-
-        return CeleryJobBackend(celery_app)
+    requested = (kind or "inline").strip().lower()
+    if requested not in {"", "inline"}:
+        raise ValueError(f"Unsupported job backend: {requested}. This app runs jobs inline.")
     return InlineJobBackend(handlers)
 
 

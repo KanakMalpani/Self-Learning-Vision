@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { readApiFailure } from "@/lib/api-error";
 import { login } from "@/lib/api-client";
 import { setToken, setUserId } from "@/lib/auth";
 import { useAuth } from "@/lib/auth-context";
@@ -42,8 +43,8 @@ export function LoginContent() {
       }
       markAuthenticated();
       router.push("/");
-    } catch (err: any) {
-      setError(err.message || "Login failed");
+    } catch (error: unknown) {
+      setError(readApiFailure(error, "Login failed").message);
     } finally {
       setSubmitting(false);
     }

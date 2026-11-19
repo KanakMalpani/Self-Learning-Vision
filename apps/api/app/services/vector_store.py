@@ -8,6 +8,8 @@ from math import sqrt
 from pathlib import Path
 from typing import Any
 
+from app.services.json_store import write_json
+
 
 class VectorStoreUnavailable(RuntimeError):
     pass
@@ -168,10 +170,7 @@ class LocalJsonVectorStore(VectorStore):
         return records
 
     def _save(self, records: dict[str, VectorRecord]) -> None:
-        payload = [asdict(record) for record in records.values()]
-        temp_path = self.path.with_suffix(".tmp")
-        temp_path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
-        temp_path.replace(self.path)
+        write_json(self.path, [asdict(record) for record in records.values()])
 
 
 class PgVectorStore(VectorStore):

@@ -3,4 +3,4 @@ set -euo pipefail
 
 cd "$(dirname "$0")/.."
 docker compose down
-echo "Jarvis has stopped."
+echo "Self-Learning Vision has stopped."

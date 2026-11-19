@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import Any
 
 from app.core.config import settings
+from app.services.json_store import read_json_object, write_json
 
 PROVIDER_CAPABILITIES = {
     "face_embedding",
@@ -206,7 +207,6 @@ class ProviderMarketplace:
     def _base_cards(self) -> list[ProviderCard]:
         local_ready = self._local_ready()
         insightface_available = self._insightface_available()
-        paid_ready = bool(settings.paid_provider_api_key.strip()) and settings.paid_provider_enabled
         return [
             ProviderCard(
                 provider_id="local-face-embedding",
@@ -239,53 +239,6 @@ class ProviderMarketplace:
                 cost_model="free",
                 setup="Install InsightFace and ONNX Runtime providers appropriate for your hardware.",
                 privacy_notes="Images stay local when installed locally.",
-            ),
-            ProviderCard(
-                provider_id="template-paid-provider",
-                display_name="Template Hosted Provider",
-                mode="hosted_paid",
-                capabilities=[
-                    "face_embedding",
-                    "image_classification",
-                    "captioning",
-                    "ocr",
-                    "multimodal_reasoning",
-                ],
-                status="ready" if paid_ready else "not_configured",
-                images_leave_device=True,
-                embeddings_stored_locally=True,
-                enabled_by_default=False,
-                recommended_for=["custom model servers", "hosted APIs", "enterprise integrations"],
-                env_vars=["PAID_PROVIDER_ENABLED", "PAID_PROVIDER_API_KEY"],
-                expected_dimensions=None,
-                latency_profile="provider dependent",
-                cost_model="paid or hosted",
-                setup="Copy apps/api/app/providers/template_paid_provider.py and implement the provider call.",
-                privacy_notes="Images may leave the device. Requires explicit hosted-provider privacy opt-in.",
-            ),
-            ProviderCard(
-                provider_id="custom-http-provider",
-                display_name="Custom HTTP Provider",
-                mode="hosted_or_internal",
-                capabilities=[
-                    "face_embedding",
-                    "object_detection",
-                    "image_classification",
-                    "captioning",
-                    "ocr",
-                    "multimodal_reasoning",
-                ],
-                status="template",
-                images_leave_device=True,
-                embeddings_stored_locally=True,
-                enabled_by_default=False,
-                recommended_for=["self-hosted model servers", "edge devices", "internal APIs"],
-                env_vars=["CUSTOM_PROVIDER_URL", "CUSTOM_PROVIDER_API_KEY"],
-                expected_dimensions=None,
-                latency_profile="deployment dependent",
-                cost_model="deployment dependent",
-                setup="Implement a provider class behind the contracts in apps/api/app/providers/base.py.",
-                privacy_notes="Treat as hosted unless the endpoint is on a trusted local network.",
             ),
         ]
 
@@ -356,18 +309,10 @@ class ProviderSelectionRegistry:
         return self.get().selections.get(self.normalize_capability(capability))
 
     def _load_payload(self) -> dict[str, Any]:
-        if not self.path.exists():
-            return {}
-        try:
-            payload = json.loads(self.path.read_text(encoding="utf-8"))
-        except Exception:
-            return {}
-        return payload if isinstance(payload, dict) else {}
+        return read_json_object(self.path)
 
     def _save_payload(self, payload: dict[str, Any]) -> None:
-        temp_path = self.path.with_suffix(".tmp")
-        temp_path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
-        temp_path.replace(self.path)
+        write_json(self.path, payload)
 
     def _sanitize_selections(self, value: object) -> dict[str, str]:
         if not isinstance(value, dict):

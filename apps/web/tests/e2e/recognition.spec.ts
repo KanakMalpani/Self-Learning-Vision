@@ -82,10 +82,10 @@ test("first-run recognition flow and Review Inbox shell are usable", async ({ pa
     mimeType: "image/png",
     buffer: Buffer.from("public-safe synthetic fixture"),
   });
-  await page.getByRole("button", { name: "Upload & Detect Faces" }).click();
+  await page.getByRole("button", { name: "Upload and detect faces" }).click();
   await expect(page.getByRole("button", { name: /Face 1/ })).toBeVisible();
 
-  await page.getByRole("button", { name: "Recognize Selected Face" }).click();
+  await page.getByRole("button", { name: "Recognize selected face" }).click();
   await expect(page.getByText("Unknown face", { exact: true })).toBeVisible();
   await expect(page.getByText("Saved as a useful unknown sample")).toBeVisible();
 
