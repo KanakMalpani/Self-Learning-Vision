@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
-from app.services.learning_signal_registry import LearningSignalRecord, LearningSignalRegistry
+from app.services.learning_signal_registry import LearningSignalRegistry
 from app.services.memory_entity_registry import MemoryEntityRecord, MemoryEntityRegistry
 
 
@@ -36,14 +36,19 @@ class MemoryLifecyclePolicy:
         signal_registry: LearningSignalRegistry,
     ) -> LifecyclePolicyResult:
         if entity.lifecycle_state in {"archived", "forgotten", "uncertain"}:
-            return LifecyclePolicyResult(applied=False, entity=entity, reason="state is not eligible")
+            return LifecyclePolicyResult(
+                applied=False, entity=entity, reason="state is not eligible"
+            )
         if entity.lifecycle_state == "candidate" and entity.domain_type == "person":
-            return LifecyclePolicyResult(applied=False, entity=entity, reason="person candidates require review")
+            return LifecyclePolicyResult(
+                applied=False, entity=entity, reason="person candidates require review"
+            )
 
         signals = [
             signal
             for signal in signal_registry.list_signals(status="pending", entity_id=entity.entity_id)
-            if signal.signal_type in {"memory_run_match", "positive_observation", "active_learning_confirmation"}
+            if signal.signal_type
+            in {"memory_run_match", "positive_observation", "active_learning_confirmation"}
             and signal.confidence >= self.high_confidence_threshold
         ]
         if len(signals) < self.min_reinforcement_signals:

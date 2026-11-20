@@ -51,7 +51,10 @@ def detect_memory_contradictions(
     for other in all_entities:
         if other.entity_id == entity.entity_id or other.domain_type != entity.domain_type:
             continue
-        other_labels = {other.label.strip().lower(), *(alias.strip().lower() for alias in other.aliases)}
+        other_labels = {
+            other.label.strip().lower(),
+            *(alias.strip().lower() for alias in other.aliases),
+        }
         if label_set.intersection({item for item in other_labels if item}):
             conflicts.append(
                 {
@@ -81,7 +84,11 @@ def detect_memory_contradictions(
             )
 
     for signal in learning_signals:
-        if signal.entity_id == entity.entity_id and signal.signal_type == "contradiction" and signal.status == "pending":
+        if (
+            signal.entity_id == entity.entity_id
+            and signal.signal_type == "contradiction"
+            and signal.status == "pending"
+        ):
             conflicts.append(
                 {
                     "conflict_id": f"signal:{signal.signal_id}",

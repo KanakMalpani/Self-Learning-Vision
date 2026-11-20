@@ -5,7 +5,6 @@ from pathlib import Path
 
 import pytest
 
-from app.core.async_db import async_database_url
 from app.services.job_backend import InlineJobBackend, build_job_backend
 from app.services.model_assets import insightface_health
 from app.services.vector_store import (
@@ -16,12 +15,9 @@ from app.services.vector_store import (
 )
 
 
-def test_async_database_url_uses_async_driver_for_postgres() -> None:
-    assert (
-        async_database_url("postgresql://postgres:postgres@db:5432/self_learning_vision")
-        == "postgresql+asyncpg://postgres:postgres@db:5432/self_learning_vision"
-    )
-    assert async_database_url("postgresql+asyncpg://db/app") == "postgresql+asyncpg://db/app"
+def test_job_backend_rejects_removed_celery_backend() -> None:
+    with pytest.raises(ValueError):
+        build_job_backend("celery")
 
 
 def test_insightface_health_reports_missing_optional_dependencies(tmp_path: Path) -> None:
@@ -79,7 +75,9 @@ def test_pgvector_store_is_optional_when_dependency_missing() -> None:
 
 
 def test_inline_job_backend_runs_handlers_and_redacts_payload() -> None:
-    backend = InlineJobBackend({"learning.replay": lambda payload: {"entity_id": payload["entity_id"]}})
+    backend = InlineJobBackend(
+        {"learning.replay": lambda payload: {"entity_id": payload["entity_id"]}}
+    )
 
     job = backend.enqueue(
         "learning.replay",
@@ -100,4 +98,3 @@ def test_job_backend_factory_defaults_to_inline() -> None:
 
     assert job.status == "succeeded"
     assert job.result == {"queued_inline": True}
-

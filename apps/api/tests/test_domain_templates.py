@@ -8,7 +8,16 @@ def test_domain_template_catalog_covers_core_visual_domains() -> None:
     catalog = DomainTemplateCatalog()
     templates = {template.domain_type: template for template in catalog.list_templates()}
 
-    for domain_type in ["person", "object", "place", "scene", "event", "document", "product", "inventory"]:
+    for domain_type in [
+        "person",
+        "object",
+        "place",
+        "scene",
+        "event",
+        "document",
+        "product",
+        "inventory",
+    ]:
         assert domain_type in templates
         assert domain_type in RESERVED_DOMAIN_TYPES
         assert templates[domain_type].fields

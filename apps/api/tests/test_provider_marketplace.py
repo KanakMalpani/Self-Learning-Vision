@@ -21,11 +21,12 @@ def test_provider_marketplace_lists_core_capabilities() -> None:
     assert "face_embedding" in PROVIDER_CAPABILITIES
     assert by_id["local-face-embedding"].status in {"ready", "unavailable"}
     assert by_id["local-face-embedding"].images_leave_device is False
-    assert by_id["template-paid-provider"].status == "blocked_by_privacy_policy"
-    assert "multimodal_reasoning" in by_id["template-paid-provider"].capabilities
+    assert by_id["insightface"].images_leave_device is False
+    assert "template-paid-provider" not in by_id
+    assert "custom-http-provider" not in by_id
 
 
-def test_provider_marketplace_allows_hosted_when_privacy_allows() -> None:
+def test_provider_marketplace_has_no_hosted_template_cards() -> None:
     marketplace = ProviderMarketplace()
 
     card = marketplace.find_card(
@@ -34,9 +35,7 @@ def test_provider_marketplace_allows_hosted_when_privacy_allows() -> None:
         allow_hosted=True,
     )
 
-    assert card is not None
-    assert card.status in {"ready", "not_configured"}
-    assert card.images_leave_device is True
+    assert card is None
 
 
 def test_provider_selection_registry_persists_selection(tmp_path: Path) -> None:
@@ -101,7 +100,9 @@ def test_provider_marketplace_includes_file_backed_plugins(tmp_path: Path) -> No
         """,
         encoding="utf-8",
     )
-    marketplace = ProviderMarketplace(plugin_registry=ProviderPluginRegistry([tmp_path], include_default=False))
+    marketplace = ProviderMarketplace(
+        plugin_registry=ProviderPluginRegistry([tmp_path], include_default=False)
+    )
 
     card = marketplace.find_card("local-demo-plugin", privacy_local_only=True, allow_hosted=False)
     provider = marketplace.build_face_embedding_provider("local-demo-plugin")

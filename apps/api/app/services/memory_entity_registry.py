@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import json
 import threading
 from dataclasses import asdict, dataclass, field
 from datetime import UTC, datetime
@@ -8,8 +7,18 @@ from pathlib import Path
 from typing import Any
 from uuid import uuid4
 
+from app.services.json_store import read_json_list, write_json
 
-RESERVED_DOMAIN_TYPES = {"person", "object", "place", "scene", "event", "document", "product", "inventory"}
+RESERVED_DOMAIN_TYPES = {
+    "person",
+    "object",
+    "place",
+    "scene",
+    "event",
+    "document",
+    "product",
+    "inventory",
+}
 
 
 @dataclass
@@ -125,7 +134,9 @@ class MemoryEntityRegistry:
             payload = self._load_payload()
             records = [self._record_from_payload(item) for item in payload]
             records = [record for record in records if record is not None]
-            existing_index = self._find_index(records, domain_type=normalized_domain, label=clean_label)
+            existing_index = self._find_index(
+                records, domain_type=normalized_domain, label=clean_label
+            )
             now_iso = datetime.now(UTC).isoformat()
 
             if existing_index is None:
@@ -138,7 +149,9 @@ class MemoryEntityRegistry:
                     aliases=self._sanitize_list(aliases),
                     tags=self._sanitize_list(tags),
                     notes=notes.strip() if notes else None,
-                    confidence=self._clamp_confidence(confidence if confidence is not None else 0.0),
+                    confidence=self._clamp_confidence(
+                        confidence if confidence is not None else 0.0
+                    ),
                     lifecycle_state=self._normalize_lifecycle(lifecycle_state or "candidate"),
                     observations=[],
                     source_reference_ids=[],
@@ -161,11 +174,16 @@ class MemoryEntityRegistry:
                 record.updated_at = now_iso
 
             if source_reference_id:
-                record.source_reference_ids = self._merge_lists(record.source_reference_ids, [source_reference_id])
+                record.source_reference_ids = self._merge_lists(
+                    record.source_reference_ids, [source_reference_id]
+                )
             if observation:
                 if not observation.observed_at:
                     observation.observed_at = now_iso
-                if all(item.observation_id != observation.observation_id for item in record.observations):
+                if all(
+                    item.observation_id != observation.observation_id
+                    for item in record.observations
+                ):
                     record.observations.append(observation)
                 record.updated_at = now_iso
 
@@ -195,7 +213,9 @@ class MemoryEntityRegistry:
                         source=source.strip() or "manual",
                         source_id=source_id,
                         modality=modality.strip() or "vision",
-                        confidence=self._clamp_confidence(confidence) if confidence is not None else None,
+                        confidence=(
+                            self._clamp_confidence(confidence) if confidence is not None else None
+                        ),
                         notes=notes.strip() if notes else None,
                         observed_at=now_iso,
                     )
@@ -282,7 +302,9 @@ class MemoryEntityRegistry:
                 age_days = (current - last_seen).days
                 if age_days < stale_after_days:
                     continue
-                to_state = "stale" if record.lifecycle_state == "confirmed" else record.lifecycle_state
+                to_state = (
+                    "stale" if record.lifecycle_state == "confirmed" else record.lifecycle_state
+                )
                 self._append_lifecycle_event(
                     record,
                     event_type="decayed",
@@ -491,7 +513,9 @@ class MemoryEntityRegistry:
         with self._lock:
             records = [self._record_from_payload(item) for item in self._load_payload()]
             records = [record for record in records if record is not None]
-            target = next((record for record in records if record.entity_id == target_entity_id), None)
+            target = next(
+                (record for record in records if record.entity_id == target_entity_id), None
+            )
             if target is None:
                 return None
             sources = [record for record in records if record.entity_id in clean_sources]
@@ -543,7 +567,9 @@ class MemoryEntityRegistry:
             if not moved:
                 raise ValueError("No matching observations found for split")
             now_iso = datetime.now(UTC).isoformat()
-            original.observations = [item for item in original.observations if item.observation_id not in selected_ids]
+            original.observations = [
+                item for item in original.observations if item.observation_id not in selected_ids
+            ]
             original.lifecycle_state = "uncertain"
             original.updated_at = now_iso
             new_entity = MemoryEntityRecord(
@@ -566,7 +592,9 @@ class MemoryEntityRegistry:
             self._save_payload([asdict(item) for item in records])
             return original, new_entity
 
-    def _find_index(self, records: list[MemoryEntityRecord], *, domain_type: str, label: str) -> int | None:
+    def _find_index(
+        self, records: list[MemoryEntityRecord], *, domain_type: str, label: str
+    ) -> int | None:
         normalized_label = label.strip().lower()
         for index, record in enumerate(records):
             if record.domain_type != domain_type:
@@ -577,18 +605,10 @@ class MemoryEntityRegistry:
         return None
 
     def _load_payload(self) -> list[dict[str, Any]]:
-        if not self.path.exists():
-            return []
-        try:
-            payload = json.loads(self.path.read_text(encoding="utf-8"))
-        except Exception:
-            return []
-        return payload if isinstance(payload, list) else []
+        return read_json_list(self.path)
 
     def _save_payload(self, payload: list[dict[str, Any]]) -> None:
-        temp_path = self.path.with_suffix(".tmp")
-        temp_path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
-        temp_path.replace(self.path)
+        write_json(self.path, payload)
 
     def _record_from_payload(self, item: dict[str, Any]) -> MemoryEntityRecord | None:
         if not isinstance(item, dict):
@@ -612,7 +632,8 @@ class MemoryEntityRegistry:
                         else None
                     ),
                     notes=str(observation.get("notes") or "") or None,
-                    observed_at=str(observation.get("observed_at") or "") or datetime.now(UTC).isoformat(),
+                    observed_at=str(observation.get("observed_at") or "")
+                    or datetime.now(UTC).isoformat(),
                 )
             )
 
@@ -628,7 +649,9 @@ class MemoryEntityRegistry:
             tags=self._sanitize_list(item.get("tags")),
             notes=str(item.get("notes") or "") or None,
             confidence=self._clamp_confidence(item.get("confidence") or 0.0),
-            lifecycle_state=self._normalize_lifecycle(str(item.get("lifecycle_state") or "candidate")),
+            lifecycle_state=self._normalize_lifecycle(
+                str(item.get("lifecycle_state") or "candidate")
+            ),
             observations=observations,
             lifecycle_events=self._lifecycle_events_from_payload(item.get("lifecycle_events")),
             source_reference_ids=self._sanitize_list(item.get("source_reference_ids")),
@@ -716,7 +739,9 @@ class MemoryEntityRegistry:
                 MemoryLifecycleEvent(
                     event_id=str(item.get("event_id") or uuid4()),
                     event_type=str(item.get("event_type") or "updated"),
-                    from_state=self._normalize_lifecycle(str(item.get("from_state") or "candidate")),
+                    from_state=self._normalize_lifecycle(
+                        str(item.get("from_state") or "candidate")
+                    ),
                     to_state=self._normalize_lifecycle(str(item.get("to_state") or "candidate")),
                     confidence_before=self._clamp_confidence(item.get("confidence_before") or 0.0),
                     confidence_after=self._clamp_confidence(item.get("confidence_after") or 0.0),
@@ -742,7 +767,9 @@ class MemoryEntityRegistry:
 
     @staticmethod
     def normalize_domain_type(domain_type: str) -> str:
-        normalized = "".join(char if char.isalnum() or char in {"_", "-"} else "_" for char in domain_type.lower())
+        normalized = "".join(
+            char if char.isalnum() or char in {"_", "-"} else "_" for char in domain_type.lower()
+        )
         normalized = normalized.strip("_-")
         return normalized or "custom"
 

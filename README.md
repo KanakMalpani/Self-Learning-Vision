@@ -4,7 +4,7 @@
 
   <p>
     <a href="https://github.com/KanakMalpani/Self-Learning-Vision/actions/workflows/ci.yml">
-      <img src="https://img.shields.io/badge/CI-Passing-009688?style=for-the-badge&logo=github-actions&logoColor=white" alt="CI Status">
+      <img src="https://img.shields.io/github/actions/workflow/status/KanakMalpani/Self-Learning-Vision/ci.yml?branch=main&style=for-the-badge&logo=github-actions&logoColor=white" alt="CI Status">
     </a>
     <a href="LICENSE">
       <img src="https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge" alt="MIT License">
@@ -38,7 +38,7 @@ Traditional face recognition systems rely on sweeping public database crawling, 
 | **Data Residency** | Centralized cloud server (High exposure) | 100% Local (Docker or isolated native user app-data boundary) |
 | **Learning Trigger** | Automated background scraping & indexing | Consent-driven; user confirms familiar clusters |
 | **Privacy Safeguards** | Biometrics exposed to vendor APIs | Biometrics locked locally; vector-free redacted exports |
-| **AI Engine Neutrality** | Locked into proprietary APIs & subscriptions | Pluggable provider interface (Local default vs. Custom hosted) |
+| **AI Engine Neutrality** | Locked into proprietary APIs & subscriptions | Local MediaPipe by default, optional InsightFace, local plugins |
 | **Model Expandability** | Hardcoded to single visual domains | Dynamic memory templates (People, Objects, Places, Scenes) |
 
 ---
@@ -60,9 +60,10 @@ Self-Learning Vision accommodates both lightweight offline consumers and multi-s
   * 🐧 **Linux:** Lightweight AppImage and Debian (`.deb`) installers.
 
 ### 🐳 Path B: Full-Stack Docker Web Suite
-*Designed for developers, server environments, and database-intensive recognition services.*
-* **Enterprise Features:** Leverages PostgreSQL for relational structures, optional `pgvector` or complex local databases, and advanced providers (like InsightFace).
-* **Easy Spin Up:** Standard single-command multi-container docker compose setup.
+*Designed for developers who want Postgres, the API, and the web UI from one command.*
+* **One command:** `scripts/start-local.ps1` on Windows, or `scripts/start-local.sh` on macOS and Linux. Each script creates `.env` from `.env.example` when it is missing, then starts Compose.
+* **What comes up:** PostgreSQL 15, the FastAPI API, and the Next.js app. Recognition jobs run inline inside the API. The desktop app keeps its own SQLite database.
+* **Optional local models:** InsightFace and pgvector stay optional. The default stack does not need them.
 
 ---
 
@@ -110,6 +111,10 @@ cp .env.example .env
 
 # 3. Spin up the containers
 docker compose up --build
+
+# Or use the start script, which also creates .env when it is missing
+# Windows: powershell -ExecutionPolicy Bypass -File scripts/start-local.ps1
+# macOS or Linux: ./scripts/start-local.sh
 ```
 1. Open **[http://localhost:3000](http://localhost:3000)** in your browser.
 2. Upload a sample image, select a detected face/object, name it, and save the enrollment.
@@ -183,6 +188,8 @@ flowchart TB
     class SQLite,JSON,Assets store;
 ```
 
+The HTTP API is a set of FastAPI route modules. Local JSON registries share one store. Jobs run inline in the API process, so there is no separate queue to install.
+
 ---
 
 ## 🚀 CI/CD Release Automation & Security Hardening
@@ -209,9 +216,10 @@ Self-Learning Vision features a enterprise-grade automation and security ecosyst
 * **The Review Inbox:** A command-center page that ranks pending verification questions, flags contradictions, surfaces candidate memories, and offers corrections in one unified interface.
 
 ### 🔌 2. Provider-Neutral Architecture
-* **Out-of-the-Box Local Pipeline:** Runs immediately on CPU/GPU without external dependencies using our high-speed, lightweight MediaPipe engine.
-* **Bring-Your-Own (BYO) Provider:** Add or swap engines seamlessly (such as custom embedders or hosted model servers) by writing a short provider file conforming to the `FaceEmbeddingProvider` class contract.
-* **Data-Movement Boundaries:** Safe defaults ensure hosted providers are locked down while local-only policies are active.
+* **Out-of-the-Box Local Pipeline:** Runs on this machine with the MediaPipe face embedder. No hosted recognition service is required.
+* **Optional InsightFace:** Install the optional local package when you want ArcFace embeddings. The marketplace cards are `local-face-embedding` and `insightface`.
+* **Local Plugins:** Add another on-device provider with a short `FaceEmbeddingProvider` file, or drop a JSON manifest in the plugin directory.
+* **Data-Movement Boundaries:** Local-only mode is the default. Images and embeddings stay on this machine.
 
 ### 📦 3. Multidimensional Visual Memory
 * **Beyond Facial Data:** Out-of-the-box templates and custom schemas for **People**, **Objects**, **Places**, **Scenes**, and **Events**.
@@ -237,19 +245,19 @@ Self-Learning Vision lets you dictate how cautious or proactive the engine shoul
 
 ## 📚 Complete Document Registry
 
-This workspace contains an extensive, state-of-the-art reference standard for engineering privacy-respecting, local-first visual memory applications. Explore the complete docs folder:
+The docs folder is the operating manual: setup, privacy, learning, providers, and evaluation.
 
 | 🏁 Setup & Getting Started | 🏗️ Architecture & Core Engine | 🧪 Providers & Evaluation |
 |---|---|---|
 | 📦 [First Five Minutes](docs/first-five-minutes.md) | 📐 [System Architecture](docs/architecture.md) | 🧩 [Provider Guide & APIs](docs/provider-guide.md) |
 | 🚀 [First Run Setup](docs/first-run.md) | 📂 [Memory Domain Models](docs/memory-domains.md) | 🔌 [Provider Marketplace](docs/provider-marketplace.md) |
-| 💻 [Download Desktop Alpha](docs/download.md) | 📋 [Desktop Release Checklist](docs/desktop-release-checklist.md) | 📊 [Evaluation Dashboards](docs/evaluation-dashboard.md) |
+| 💻 [Download Desktop Alpha](docs/download.md) | 📜 [Usage Policy](docs/usage-policy.md) | 📊 [Evaluation Dashboards](docs/evaluation-dashboard.md) |
 | 🪟 [Windows Install](docs/install/windows.md) | 🍏 [macOS Install](docs/install/macos.md) | 🐧 [Linux Install](docs/install/linux.md) |
-| 🎬 [Demo Script Walkthrough](docs/demo-walkthrough.md) | 🔄 [Memory Lifecycle States](docs/memory-lifecycle.md) | 📜 [Self-Learning Standards](docs/self-learning-vision-standard.md) |
-| 🧑‍💻 [Local Development Guide](docs/active-learning.md) | 🔒 [Local Privacy Guidelines](docs/privacy.md) | 📈 [Quality & Metric Toolkit](docs/memory-quality-toolkit.md) |
+| 🎬 [Demo Script Walkthrough](docs/demo-walkthrough.md) | 🔄 [Memory Lifecycle States](docs/memory-lifecycle.md) | ⚠️ [Disclaimer](docs/disclaimer.md) |
+| 🧑‍💻 [Active Learning](docs/active-learning.md) | 🔒 [Local Privacy Guidelines](docs/privacy.md) | 📈 [Quality & Metric Toolkit](docs/memory-quality-toolkit.md) |
 | 📥 [Review Inbox Mechanics](docs/learning-review.md) | 📦 [Privacy Vault Controls](docs/privacy-vault.md) | 🧪 [Evaluation Methods](docs/evaluation.md) |
 | 🛠️ [Correction UX Details](docs/correction-ux.md) | 🗄️ [Data Access & Controls](docs/data-controls.md) | 🛡️ [Security Boundary Guidelines](SECURITY.md) |
-| 🧰 [Demo Fixtures](docs/demo-fixtures.md) | 📋 [Deployment Checklist](docs/github-launch-checklist.md) | 🤝 [Contributing Guidelines](CONTRIBUTING.md) |
+| 🧰 [Demo Fixtures](docs/demo-fixtures.md) | 💻 [Local Development](#-manual-setup--local-development-web-stack) | 🤝 [Contributing Guidelines](CONTRIBUTING.md) |
 
 ---
 

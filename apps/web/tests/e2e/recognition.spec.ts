@@ -75,17 +75,17 @@ test.beforeEach(async ({ page }) => {
 
 test("first-run recognition flow and Review Inbox shell are usable", async ({ page }) => {
   await page.goto("/");
-  await expect(page.getByRole("heading", { name: "Self-Learning Vision" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Remember a face" })).toBeVisible();
 
   await page.locator('input[type="file"]').setInputFiles({
     name: "synthetic-demo.png",
     mimeType: "image/png",
     buffer: Buffer.from("public-safe synthetic fixture"),
   });
-  await page.getByRole("button", { name: "Upload & Detect Faces" }).click();
+  await page.getByRole("button", { name: "Upload and detect faces" }).click();
   await expect(page.getByRole("button", { name: /Face 1/ })).toBeVisible();
 
-  await page.getByRole("button", { name: "Recognize Selected Face" }).click();
+  await page.getByRole("button", { name: "Recognize selected face" }).click();
   await expect(page.getByText("Unknown face", { exact: true })).toBeVisible();
   await expect(page.getByText("Saved as a useful unknown sample")).toBeVisible();
 

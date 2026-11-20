@@ -54,7 +54,10 @@ BUILT_IN_DOMAIN_TEMPLATES = [
             "last_known_context": "string",
             "consent_scope": "string",
         },
-        default_attributes={"default_recognition_domain": "face", "consent_scope": "local_user_memory"},
+        default_attributes={
+            "default_recognition_domain": "face",
+            "consent_scope": "local_user_memory",
+        },
         recommended_tags=["person", "identity", "local-memory"],
         observation_modality="face",
         lifecycle_state="candidate",
@@ -208,7 +211,9 @@ class DomainTemplateCatalog:
         }
 
     def _normalize(self, value: str) -> str:
-        normalized = "".join(char if char.isalnum() or char in {"_", "-"} else "_" for char in value.lower())
+        normalized = "".join(
+            char if char.isalnum() or char in {"_", "-"} else "_" for char in value.lower()
+        )
         return normalized.strip("_-")
 
 

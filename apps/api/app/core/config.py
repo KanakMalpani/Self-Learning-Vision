@@ -1,5 +1,4 @@
 from functools import lru_cache
-from typing import List
 
 from pydantic import ConfigDict
 from pydantic_settings import BaseSettings
@@ -29,7 +28,6 @@ class Settings(BaseSettings):
     provider_plugin_dirs: str = ""
     vector_store: str = "local_json"
     job_backend: str = "inline"
-    redis_url: str = "redis://redis:6379/0"
     privacy_local_only_mode: bool = True
     privacy_allow_hosted_providers: bool = False
     face_quality_min_threshold: float = 0.40
@@ -43,10 +41,12 @@ class Settings(BaseSettings):
     unknown_cluster_similarity_threshold: float = 0.88
     unknown_cluster_familiarity_min_samples: int = 2
 
-    model_config = ConfigDict(env_file=".env", case_sensitive=False, extra="ignore", protected_namespaces=())
+    model_config = ConfigDict(
+        env_file=".env", case_sensitive=False, extra="ignore", protected_namespaces=()
+    )
 
     @property
-    def cors_origin_list(self) -> List[str]:
+    def cors_origin_list(self) -> list[str]:
         return [origin.strip() for origin in self.cors_origins.split(",") if origin.strip()]
 
 

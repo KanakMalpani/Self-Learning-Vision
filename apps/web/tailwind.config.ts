@@ -19,7 +19,8 @@ const config: Config = {
         grain: "radial-gradient(circle at 1px 1px, rgba(255,255,255,0.05) 1px, transparent 0)",
       },
       fontFamily: {
-        display: ["'Manrope'", "'Segoe UI'", "sans-serif"],
+        sans: ["var(--font-sans)", "ui-sans-serif", "system-ui", "sans-serif"],
+        display: ["var(--font-display)", "Georgia", "serif"],
       },
     },
   },

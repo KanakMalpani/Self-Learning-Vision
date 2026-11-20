@@ -2,11 +2,12 @@ from __future__ import annotations
 
 import json
 from abc import ABC, abstractmethod
+from collections.abc import Sequence
 from dataclasses import dataclass
 from hashlib import sha256
 from math import exp, sqrt
 from pathlib import Path
-from typing import Any, List, Sequence
+from typing import Any
 
 try:
     import cv2
@@ -48,7 +49,7 @@ def _cosine_similarity_python(a: list[float], b: list[float]) -> float:
         return 0.0
     av = a[:dim]
     bv = b[:dim]
-    dot = sum(x * y for x, y in zip(av, bv))
+    dot = sum(x * y for x, y in zip(av, bv, strict=False))
     na = sqrt(sum(x * x for x in av))
     nb = sqrt(sum(y * y for y in bv))
     if na <= 0 or nb <= 0:
@@ -67,7 +68,7 @@ def _coerce_embedding(value: object) -> list[float]:
 
 
 def get_probe_embedding(
-    provider: "FaceEmbeddingProvider | None",
+    provider: FaceEmbeddingProvider | None,
     image_path: str,
     face_box: dict,
 ) -> list[float] | None:
@@ -110,7 +111,9 @@ class InsightFaceEmbeddingProvider(FaceEmbeddingProvider):
             # Support both newer insightface API (providers kwarg) and older wheel API.
             # Prioritize CUDA for GPU acceleration, fallback to CPU.
             try:
-                analyzer = FaceAnalysis(name="buffalo_l", providers=["CUDAExecutionProvider", "CPUExecutionProvider"])
+                analyzer = FaceAnalysis(
+                    name="buffalo_l", providers=["CUDAExecutionProvider", "CPUExecutionProvider"]
+                )
             except TypeError:
                 analyzer = FaceAnalysis(name="buffalo_l")
             analyzer.prepare(ctx_id=0, det_size=(640, 640))
@@ -174,7 +177,12 @@ class InsightFaceEmbeddingProvider(FaceEmbeddingProvider):
             bbox = getattr(face, "bbox", None)
             if bbox is None or len(bbox) < 4:
                 continue
-            candidate_box = (int(bbox[0]), int(bbox[1]), int(bbox[2] - bbox[0]), int(bbox[3] - bbox[1]))
+            candidate_box = (
+                int(bbox[0]),
+                int(bbox[1]),
+                int(bbox[2] - bbox[0]),
+                int(bbox[3] - bbox[1]),
+            )
             score = self._iou(target, candidate_box)
             if score > best_iou:
                 best_iou = score
@@ -270,7 +278,9 @@ class LocalFaceEmbeddingProvider(FaceEmbeddingProvider):
         red_values = [red / 255.0 for red, _, _ in pixels]
         green_values = [green / 255.0 for _, green, _ in pixels]
         blue_values = [blue / 255.0 for _, _, blue in pixels]
-        channel_means = [sum(values) / len(values) for values in (red_values, green_values, blue_values)]
+        channel_means = [
+            sum(values) / len(values) for values in (red_values, green_values, blue_values)
+        ]
         channel_stds = [self._std(values) for values in (red_values, green_values, blue_values)]
 
         features = [
@@ -398,7 +408,9 @@ class EmbeddingMatcher:
             vector = item.get("embedding")
             if not name or not isinstance(vector, list) or not vector:
                 continue
-            normalized = self._normalize_vector([float(v) for v in vector if isinstance(v, (int, float))])
+            normalized = self._normalize_vector(
+                [float(v) for v in vector if isinstance(v, (int, float))]
+            )
             if not normalized:
                 continue
             references.append({"name_or_alias": name, "embedding": normalized})
@@ -417,7 +429,7 @@ class EmbeddingMatcher:
 class FaceQualityAssessor:
     """Compute deterministic face-quality diagnostics for detected face boxes."""
 
-    def assess_faces(self, image_path: str, face_boxes: Sequence[dict]) -> List[FaceAssessment]:
+    def assess_faces(self, image_path: str, face_boxes: Sequence[dict]) -> list[FaceAssessment]:
         if not face_boxes:
             return []
 
@@ -521,7 +533,7 @@ class FaceQualityAssessor:
         pose_score: float,
         occlusion_score: float,
         detector_confidence: float,
-    ) -> List[str]:
+    ) -> list[str]:
         flags: list[str] = []
         if box_ratio < 0.04:
             flags.append("low_resolution")
@@ -545,7 +557,9 @@ class RecognitionScorer:
     def __init__(self, config: RecognitionConfig) -> None:
         self.config = config
 
-    def build_candidates(self, query: str, face_assessment: FaceAssessment) -> List[IdentityCandidate]:
+    def build_candidates(
+        self, query: str, face_assessment: FaceAssessment
+    ) -> list[IdentityCandidate]:
         seed = " ".join((query or "unknown").strip().split())
         alias = seed[:64] if seed else "Unknown"
 
@@ -572,14 +586,18 @@ class RecognitionScorer:
 
     def score_candidates(
         self,
-        candidates: List[IdentityCandidate],
+        candidates: list[IdentityCandidate],
         face_assessment: FaceAssessment,
-    ) -> List[IdentityCandidate]:
-        quality_modifier = 0.85 if face_assessment.face_quality_score < self.config.face_quality_min_threshold else 1.0
+    ) -> list[IdentityCandidate]:
+        quality_modifier = (
+            0.85
+            if face_assessment.face_quality_score < self.config.face_quality_min_threshold
+            else 1.0
+        )
         scored = [self._score_candidate(c, face_assessment, quality_modifier) for c in candidates]
         return self._apply_cross_provider_adjustments(scored)
 
-    def classify(self, candidates: List[IdentityCandidate]) -> str:
+    def classify(self, candidates: list[IdentityCandidate]) -> str:
         if not candidates:
             return "rejected"
         top = candidates[0].recognition_score
@@ -599,10 +617,15 @@ class RecognitionScorer:
         quality = face_assessment.face_quality_score
 
         false_positive_penalty = 0.0
-        if quality < self.config.face_quality_min_threshold and calibrated < self.config.recognition_tentative_threshold:
+        if (
+            quality < self.config.face_quality_min_threshold
+            and calibrated < self.config.recognition_tentative_threshold
+        ):
             false_positive_penalty += 0.20
 
-        recognition_score = self._clamp((0.45 * quality) + (0.45 * calibrated) + 0.10 - false_positive_penalty)
+        recognition_score = self._clamp(
+            (0.45 * quality) + (0.45 * calibrated) + 0.10 - false_positive_penalty
+        )
         decision = self._decision(recognition_score)
 
         candidate.calibrated_confidence = round(self._clamp(calibrated), 6)
@@ -610,7 +633,9 @@ class RecognitionScorer:
         candidate.recognition_decision = decision
         return candidate
 
-    def _apply_cross_provider_adjustments(self, candidates: List[IdentityCandidate]) -> List[IdentityCandidate]:
+    def _apply_cross_provider_adjustments(
+        self, candidates: list[IdentityCandidate]
+    ) -> list[IdentityCandidate]:
         if len(candidates) <= 1:
             return candidates
 
@@ -621,12 +646,16 @@ class RecognitionScorer:
         for group in by_name.values():
             providers = {item.provider for item in group}
             if len(providers) > 1:
-                spread = max(item.calibrated_confidence for item in group) - min(item.calibrated_confidence for item in group)
+                spread = max(item.calibrated_confidence for item in group) - min(
+                    item.calibrated_confidence for item in group
+                )
                 adjustment = self.config.recognition_cross_provider_bonus
                 if spread > 0.25:
                     adjustment -= self.config.recognition_disagreement_penalty
                 for item in group:
-                    item.recognition_score = round(self._clamp(item.recognition_score + adjustment), 6)
+                    item.recognition_score = round(
+                        self._clamp(item.recognition_score + adjustment), 6
+                    )
                     item.recognition_decision = self._decision(item.recognition_score)
         return candidates
 
@@ -654,9 +683,8 @@ def stable_reference_embedding(seed: str, dimensions: int = 128) -> list[float]:
     buf = bytearray()
     counter = 0
     while len(buf) < safe_dims:
-        digest = sha256(f"{seed}:{counter}".encode("utf-8")).digest()
+        digest = sha256(f"{seed}:{counter}".encode()).digest()
         buf.extend(digest)
         counter += 1
     values = [((value / 255.0) * 2.0) - 1.0 for value in buf[:safe_dims]]
     return _normalize_python(values)
-

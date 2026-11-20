@@ -1,11 +1,11 @@
 from __future__ import annotations
 
-import json
 import threading
 from dataclasses import asdict, dataclass
 from datetime import UTC, datetime
 from pathlib import Path
 
+from app.services.json_store import read_json, write_json
 
 POLICY_PRESETS = {
     "conservative": {
@@ -50,11 +50,8 @@ class LearningPolicyRegistry:
         self._lock = threading.Lock()
 
     def get(self) -> LearningPolicyRecord:
-        if not self.path.exists():
-            return self._record_for_preset("balanced")
-        try:
-            payload = json.loads(self.path.read_text(encoding="utf-8"))
-        except Exception:
+        payload = read_json(self.path, None)
+        if not isinstance(payload, dict):
             return self._record_for_preset("balanced")
         return self._record_from_payload(payload)
 
@@ -86,18 +83,30 @@ class LearningPolicyRegistry:
         base = self._record_for_preset(preset)
         return LearningPolicyRecord(
             preset=base.preset,
-            auto_reinforcement_enabled=bool(payload.get("auto_reinforcement_enabled", base.auto_reinforcement_enabled)),
-            high_confidence_threshold=_float(payload.get("high_confidence_threshold"), base.high_confidence_threshold),
-            min_reinforcement_signals=max(1, int(payload.get("min_reinforcement_signals") or base.min_reinforcement_signals)),
-            max_reinforcement_amount=max(0.0, min(1.0, _float(payload.get("max_reinforcement_amount"), base.max_reinforcement_amount))),
-            review_budget_per_session=max(1, int(payload.get("review_budget_per_session") or base.review_budget_per_session)),
+            auto_reinforcement_enabled=bool(
+                payload.get("auto_reinforcement_enabled", base.auto_reinforcement_enabled)
+            ),
+            high_confidence_threshold=_float(
+                payload.get("high_confidence_threshold"), base.high_confidence_threshold
+            ),
+            min_reinforcement_signals=max(
+                1, int(payload.get("min_reinforcement_signals") or base.min_reinforcement_signals)
+            ),
+            max_reinforcement_amount=max(
+                0.0,
+                min(
+                    1.0,
+                    _float(payload.get("max_reinforcement_amount"), base.max_reinforcement_amount),
+                ),
+            ),
+            review_budget_per_session=max(
+                1, int(payload.get("review_budget_per_session") or base.review_budget_per_session)
+            ),
             updated_at=str(payload.get("updated_at") or "") or datetime.now(UTC).isoformat(),
         )
 
     def _save_payload(self, payload: dict[str, object]) -> None:
-        temp_path = self.path.with_suffix(".tmp")
-        temp_path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
-        temp_path.replace(self.path)
+        write_json(self.path, payload)
 
 
 def _float(value: object, fallback: float) -> float:

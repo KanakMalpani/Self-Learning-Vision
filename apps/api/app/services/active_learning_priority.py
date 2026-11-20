@@ -78,7 +78,10 @@ class ActiveLearningPriorityScorer:
             score += 8
             reasons.append("stale memory may need refresh")
 
-        if "contradiction" in signal_types or action in {"resolve_conflict", "confirm_or_correct_memory"}:
+        if "contradiction" in signal_types or action in {
+            "resolve_conflict",
+            "confirm_or_correct_memory",
+        }:
             score += 24
             risk_level = "high"
             reasons.append("conflicting evidence exists")

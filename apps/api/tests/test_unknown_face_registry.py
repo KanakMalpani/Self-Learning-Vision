@@ -39,7 +39,9 @@ def test_unknown_registry_clusters_similar_samples(tmp_path: Path) -> None:
     assert registry.suggested_clusters()[0].unknown_cluster_id == second_cluster.unknown_cluster_id
 
 
-def test_unknown_registry_separates_different_samples_at_conservative_threshold(tmp_path: Path) -> None:
+def test_unknown_registry_separates_different_samples_at_conservative_threshold(
+    tmp_path: Path,
+) -> None:
     registry = UnknownFaceRegistry(
         tmp_path / "samples.json",
         cluster_similarity_threshold=0.99,
@@ -68,7 +70,9 @@ def test_unknown_registry_separates_different_samples_at_conservative_threshold(
     assert all(cluster.suggested_for_enrollment is False for cluster in clusters)
 
 
-def test_unknown_registry_dedupes_same_upload_face_without_incrementing_cluster(tmp_path: Path) -> None:
+def test_unknown_registry_dedupes_same_upload_face_without_incrementing_cluster(
+    tmp_path: Path,
+) -> None:
     registry = UnknownFaceRegistry(tmp_path / "samples.json")
 
     first = registry.add_sample(
@@ -119,4 +123,3 @@ def test_unknown_registry_marks_promoted_cluster_out_of_suggestions(tmp_path: Pa
     assert promoted.suggested_for_enrollment is False
     assert promoted.familiarity_state == "promoted"
     assert registry.suggested_clusters() == []
-

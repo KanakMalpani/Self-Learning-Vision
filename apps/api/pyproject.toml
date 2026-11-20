@@ -10,8 +10,11 @@ line-length = 100
 
 [tool.ruff]
 line-length = 100
+
+[tool.ruff.lint]
 select = ["E", "F", "B", "I", "C4", "UP"]
-ignore = []
+# FastAPI declares dependencies with Depends() in argument defaults.
+ignore = ["B008"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

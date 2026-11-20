@@ -112,5 +112,7 @@ def _flatten_mapping(value: dict[str, Any]) -> list[str]:
 def _normalize_filter(value: str | None) -> str | None:
     if not value:
         return None
-    normalized = "".join(char if char.isalnum() or char in {"_", "-"} else "_" for char in value.lower())
+    normalized = "".join(
+        char if char.isalnum() or char in {"_", "-"} else "_" for char in value.lower()
+    )
     return normalized.strip("_-") or None

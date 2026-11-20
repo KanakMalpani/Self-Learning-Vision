@@ -8,6 +8,8 @@ from math import sqrt
 from pathlib import Path
 from typing import Any
 
+from app.services.json_store import write_json
+
 
 class VectorStoreUnavailable(RuntimeError):
     pass
@@ -124,7 +126,8 @@ class LocalJsonVectorStore(VectorStore):
         remove_ids = [
             record_id
             for record_id, record in records.items()
-            if (vector_id and record_id == vector_id) or (entity_id and record.entity_id == entity_id)
+            if (vector_id and record_id == vector_id)
+            or (entity_id and record.entity_id == entity_id)
         ]
         for record_id in remove_ids:
             records.pop(record_id, None)
@@ -155,18 +158,19 @@ class LocalJsonVectorStore(VectorStore):
                 vector_id=vector_id,
                 entity_id=entity_id,
                 domain_type=_safe_label(item.get("domain_type"), default="custom"),
-                vector=_normalize([float(value) for value in vector if isinstance(value, (int, float))]),
-                metadata=_redact_metadata(item.get("metadata") if isinstance(item.get("metadata"), dict) else {}),
+                vector=_normalize(
+                    [float(value) for value in vector if isinstance(value, (int, float))]
+                ),
+                metadata=_redact_metadata(
+                    item.get("metadata") if isinstance(item.get("metadata"), dict) else {}
+                ),
                 created_at=str(item.get("created_at") or datetime.now(UTC).isoformat()),
                 updated_at=str(item.get("updated_at") or datetime.now(UTC).isoformat()),
             )
         return records
 
     def _save(self, records: dict[str, VectorRecord]) -> None:
-        payload = [asdict(record) for record in records.values()]
-        temp_path = self.path.with_suffix(".tmp")
-        temp_path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
-        temp_path.replace(self.path)
+        write_json(self.path, [asdict(record) for record in records.values()])
 
 
 class PgVectorStore(VectorStore):
@@ -175,7 +179,9 @@ class PgVectorStore(VectorStore):
             import psycopg2
             from pgvector.psycopg2 import register_vector
         except Exception as exc:  # pragma: no cover - optional production dependency
-            raise VectorStoreUnavailable("Install pgvector extras before using VECTOR_STORE=pgvector") from exc
+            raise VectorStoreUnavailable(
+                "Install pgvector extras before using VECTOR_STORE=pgvector"
+            ) from exc
         self.database_url = database_url
         self.table_name = table_name
         self._psycopg2 = psycopg2
@@ -324,8 +330,7 @@ class PgVectorStore(VectorStore):
     def _ensure_schema(self) -> None:
         with self._connect() as conn, conn.cursor() as cur:
             cur.execute("CREATE EXTENSION IF NOT EXISTS vector")
-            cur.execute(
-                f"""
+            cur.execute(f"""
                 CREATE TABLE IF NOT EXISTS {self.table_name} (
                     vector_id TEXT PRIMARY KEY,
                     entity_id TEXT NOT NULL,
@@ -335,8 +340,7 @@ class PgVectorStore(VectorStore):
                     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
                     updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
                 )
-                """
-            )
+                """)
             cur.execute(
                 f"CREATE INDEX IF NOT EXISTS {self.table_name}_entity_idx ON {self.table_name} (entity_id)"
             )
@@ -377,6 +381,13 @@ def _safe_label(value: object, *, default: str) -> str:
 
 
 def _redact_metadata(metadata: dict[str, object]) -> dict[str, object]:
-    blocked = {"path", "file_path", "source_image_path", "upload_path", "raw_image", "embedding", "vector"}
+    blocked = {
+        "path",
+        "file_path",
+        "source_image_path",
+        "upload_path",
+        "raw_image",
+        "embedding",
+        "vector",
+    }
     return {str(key): value for key, value in metadata.items() if str(key).lower() not in blocked}
-

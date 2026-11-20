@@ -1,6 +1,8 @@
 import uuid
 from enum import Enum
-from sqlalchemy import JSON, Column, DateTime, Enum as PgEnum, ForeignKey, Integer, Text, func
+
+from sqlalchemy import JSON, Column, DateTime, ForeignKey, Integer, Text, func
+from sqlalchemy import Enum as PgEnum
 from sqlalchemy.orm import relationship
 
 from app.models.base import Base
@@ -37,6 +39,8 @@ class MemoryRun(Base):
     upload = relationship("Upload", backref="memory_runs")
     user = relationship("User", foreign_keys=[user_id], backref="memory_runs")
     activities = relationship(
-        "Activity", back_populates="memory_run", cascade="all, delete-orphan", order_by="Activity.created_at"
+        "Activity",
+        back_populates="memory_run",
+        cascade="all, delete-orphan",
+        order_by="Activity.created_at",
     )
-

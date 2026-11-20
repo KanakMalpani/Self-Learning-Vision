@@ -1,4 +1,5 @@
 import uuid
+
 from sqlalchemy import JSON, Column, DateTime, ForeignKey, String, func
 from sqlalchemy.orm import relationship
 
@@ -18,4 +19,3 @@ class Upload(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     user = relationship("User", backref="uploads")
-

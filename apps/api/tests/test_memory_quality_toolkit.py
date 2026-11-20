@@ -6,7 +6,11 @@ from app.services.confidence_ledger import build_confidence_ledger
 from app.services.correction_log_registry import CorrectionLogRecord
 from app.services.domain_active_learning import DomainActiveLearningPlanner
 from app.services.memory_detail import build_memory_entity_detail
-from app.services.memory_entity_registry import MemoryEntityRecord, MemoryLifecycleEvent, MemoryObservation
+from app.services.memory_entity_registry import (
+    MemoryEntityRecord,
+    MemoryLifecycleEvent,
+    MemoryObservation,
+)
 from app.services.memory_search import search_memory_entities
 from app.services.provider_conformance import evaluate_provider_conformance
 from app.services.provider_marketplace import ProviderCard

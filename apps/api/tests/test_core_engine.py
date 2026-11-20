@@ -41,10 +41,15 @@ class _StaticQualityAssessor:
 
     def assess_faces(self, image_path: str, face_boxes: list[dict]) -> list[FaceAssessment]:
         _ = image_path
-        return [self._assessment.model_copy(update={"face_index": index}) for index, _box in enumerate(face_boxes)]
+        return [
+            self._assessment.model_copy(update={"face_index": index})
+            for index, _box in enumerate(face_boxes)
+        ]
 
 
-def _quality(score: float = 0.9, flags: list[str] | None = None, detector_confidence: float = 0.95) -> FaceAssessment:
+def _quality(
+    score: float = 0.9, flags: list[str] | None = None, detector_confidence: float = 0.95
+) -> FaceAssessment:
     return FaceAssessment(
         face_index=0,
         detector_confidence=detector_confidence,
@@ -60,7 +65,9 @@ def _quality(score: float = 0.9, flags: list[str] | None = None, detector_confid
 def test_core_engine_enrolls_identity_into_local_registry(tmp_path: Path) -> None:
     registry = FaceReferenceRegistry(tmp_path / "references.json")
     face_boxes = [FaceBox(x=0.1, y=0.1, width=0.4, height=0.4, score=0.98)]
-    provider = _ConditionalEmbeddingProvider({(0.1, 0.1, 0.4, 0.4): stable_reference_embedding("ada")})
+    provider = _ConditionalEmbeddingProvider(
+        {(0.1, 0.1, 0.4, 0.4): stable_reference_embedding("ada")}
+    )
     engine = RecognitionCoreService(
         detection_service=_StaticFaceDetectionService(face_boxes),
         reference_registry=registry,
@@ -99,7 +106,9 @@ def test_core_engine_matches_known_face_and_rejects_weak_match(tmp_path: Path) -
     engine = RecognitionCoreService(
         detection_service=_StaticFaceDetectionService(face_boxes),
         reference_registry=registry,
-        embedding_provider=_ConditionalEmbeddingProvider({(0.1, 0.1, 0.4, 0.4): stable_reference_embedding("ada")}),
+        embedding_provider=_ConditionalEmbeddingProvider(
+            {(0.1, 0.1, 0.4, 0.4): stable_reference_embedding("ada")}
+        ),
         accept_threshold=0.72,
     )
 
@@ -119,12 +128,16 @@ def test_core_engine_matches_known_face_and_rejects_weak_match(tmp_path: Path) -
     weak_engine = RecognitionCoreService(
         detection_service=_StaticFaceDetectionService(face_boxes),
         reference_registry=registry,
-        embedding_provider=_ConditionalEmbeddingProvider({(0.1, 0.1, 0.4, 0.4): stable_reference_embedding("other")}),
+        embedding_provider=_ConditionalEmbeddingProvider(
+            {(0.1, 0.1, 0.4, 0.4): stable_reference_embedding("other")}
+        ),
         accept_threshold=0.72,
         tentative_threshold=0.72,
     )
 
-    weak_match = weak_engine.match_face(image_path=str(tmp_path / "frame.jpg"), selected_face_index=0)
+    weak_match = weak_engine.match_face(
+        image_path=str(tmp_path / "frame.jpg"), selected_face_index=0
+    )
 
     assert weak_match.status == "unknown"
     assert weak_match.top_candidate_name is None
@@ -147,7 +160,9 @@ def test_core_engine_returns_tentative_without_marking_seen(tmp_path: Path) -> N
     engine = RecognitionCoreService(
         detection_service=_StaticFaceDetectionService(face_boxes),
         reference_registry=registry,
-        embedding_provider=_ConditionalEmbeddingProvider({(0.1, 0.1, 0.4, 0.4): stable_reference_embedding("ada")}),
+        embedding_provider=_ConditionalEmbeddingProvider(
+            {(0.1, 0.1, 0.4, 0.4): stable_reference_embedding("ada")}
+        ),
         accept_threshold=1.01,
         tentative_threshold=0.50,
     )
@@ -175,7 +190,9 @@ def test_core_engine_returns_memory_recall_fields_for_matched_identity(tmp_path:
     engine = RecognitionCoreService(
         detection_service=_StaticFaceDetectionService(face_boxes),
         reference_registry=registry,
-        embedding_provider=_ConditionalEmbeddingProvider({(0.1, 0.1, 0.4, 0.4): stable_reference_embedding("maya")}),
+        embedding_provider=_ConditionalEmbeddingProvider(
+            {(0.1, 0.1, 0.4, 0.4): stable_reference_embedding("maya")}
+        ),
         accept_threshold=0.72,
     )
 
@@ -199,7 +216,9 @@ def test_core_engine_rejects_low_quality_faces_before_embedding(tmp_path: Path) 
     )
 
     face_boxes = [FaceBox(x=0.1, y=0.1, width=0.4, height=0.4, score=0.98)]
-    provider = _ConditionalEmbeddingProvider({(0.1, 0.1, 0.4, 0.4): stable_reference_embedding("ada")})
+    provider = _ConditionalEmbeddingProvider(
+        {(0.1, 0.1, 0.4, 0.4): stable_reference_embedding("ada")}
+    )
     engine = RecognitionCoreService(
         detection_service=_StaticFaceDetectionService(face_boxes),
         quality_assessor=_StaticQualityAssessor(_quality(0.25, flags=["blurry"])),
@@ -260,4 +279,3 @@ def test_core_engine_scans_multiple_faces_without_forcing_false_positives(tmp_pa
     assert results[0].top_candidate_name == "Ada Lovelace"
     assert results[1].status == "unknown"
     assert results[1].top_candidate_name is None
-

@@ -15,7 +15,11 @@ def build_memory_health(
     active_learning_questions: list[object],
     learning_signals: list[LearningSignalRecord],
 ) -> dict[str, Any]:
-    related_corrections = [item for item in corrections if item.target_entity_id == entity.entity_id and not item.undone]
+    related_corrections = [
+        item
+        for item in corrections
+        if item.target_entity_id == entity.entity_id and not item.undone
+    ]
     related_questions = [
         item
         for item in active_learning_questions
@@ -33,7 +37,10 @@ def build_memory_health(
     score = float(entity.confidence or 0.0) * 0.58
     score += min(0.18, len(entity.observations) * 0.03)
     score += min(0.12, len(entity.lifecycle_events) * 0.025)
-    score += min(0.08, len([signal for signal in related_signals if signal.signal_type != "contradiction"]) * 0.02)
+    score += min(
+        0.08,
+        len([signal for signal in related_signals if signal.signal_type != "contradiction"]) * 0.02,
+    )
 
     if entity.lifecycle_state == "confirmed":
         score += 0.12

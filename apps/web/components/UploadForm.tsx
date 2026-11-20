@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import type { FaceBox, UploadRecognitionResult, UploadResponse } from "@/types/memory";
+import { readApiFailure } from "@/lib/api-error";
 import { enrollMemoryRunFaceReference, startMemoryRun, uploadImage } from "@/lib/api-client";
 import { useAuth } from "@/lib/auth-context";
 import { AUTH_ENABLED } from "@/lib/auth-mode";
@@ -35,6 +36,16 @@ export default function UploadForm({ onMemoryRunStart, onUploadComplete }: Props
     : null;
   const recognitionTags = recognitionResult?.tags ?? [];
   const hasSeenCount = typeof recognitionResult?.seen_count === "number";
+  const reportFailure = (error: unknown, fallback: string) => {
+    const failure = readApiFailure(error, fallback);
+    if (failure.status === 401 && AUTH_ENABLED) {
+      logout();
+      router.push("/login?message=Session+expired");
+      return;
+    }
+    setError(failure.status === 401 ? "Unauthorized request" : failure.message);
+  };
+
   const isFamiliarUnknown = Boolean(
     recognitionResult?.status === "unknown"
       && recognitionResult.unknown_cluster_suggested_for_enrollment
@@ -62,18 +73,8 @@ export default function UploadForm({ onMemoryRunStart, onUploadComplete }: Props
       setRecognitionResult(null);
       setEnrollSuccess(null);
       onUploadComplete(result);
-    } catch (err: any) {
-      // Handle 401 by logging out and redirecting
-      if (err.status === 401) {
-        if (AUTH_ENABLED) {
-          logout();
-          router.push("/login?message=Session+expired");
-        } else {
-          setError("Unauthorized request");
-        }
-      } else {
-        setError(err.message || "Upload failed");
-      }
+    } catch (error: unknown) {
+      reportFailure(error, "Upload failed");
     } finally {
       setUploading(false);
     }
@@ -89,18 +90,8 @@ export default function UploadForm({ onMemoryRunStart, onUploadComplete }: Props
       setRecognitionResult(res.recognition_result || null);
       setEnrollSuccess(null);
       onMemoryRunStart(res.memory_run_id);
-    } catch (err: any) {
-      // Handle 401 by logging out and redirecting
-      if (err.status === 401) {
-        if (AUTH_ENABLED) {
-          logout();
-          router.push("/login?message=Session+expired");
-        } else {
-          setError("Unauthorized request");
-        }
-      } else {
-        setError(err.message || "Memory run failed");
-      }
+    } catch (error: unknown) {
+      reportFailure(error, "Memory run failed");
     } finally {
       setUploading(false);
     }
@@ -130,17 +121,8 @@ export default function UploadForm({ onMemoryRunStart, onUploadComplete }: Props
       setRecognitionResult(refreshed.recognition_result || null);
       setEnrollSuccess(`Saved ${enrolled.reference.name_or_alias} and refreshed recognition.`);
       onMemoryRunStart(refreshed.memory_run_id);
-    } catch (err: any) {
-      if (err.status === 401) {
-        if (AUTH_ENABLED) {
-          logout();
-          router.push("/login?message=Session+expired");
-        } else {
-          setError("Unauthorized request");
-        }
-      } else {
-        setError(err.message || "Enrollment failed");
-      }
+    } catch (error: unknown) {
+      reportFailure(error, "Enrollment failed");
     } finally {
       setEnrolling(false);
     }
@@ -200,18 +182,18 @@ export default function UploadForm({ onMemoryRunStart, onUploadComplete }: Props
 
       <div className="flex gap-3">
         <button
-          className="px-4 py-2 rounded-lg bg-board-accent text-black font-semibold disabled:opacity-60"
+          className="btn btn-primary"
           disabled={!file || uploading}
           onClick={handleUpload}
         >
-          {uploading ? "Working..." : "Upload & Detect Faces"}
+          {uploading ? "Working..." : "Upload and detect faces"}
         </button>
         <button
-          className="px-4 py-2 rounded-lg border border-white/20 text-gray-100 disabled:opacity-60"
+          className="btn btn-quiet"
           disabled={!uploadId || faces.length === 0 || uploading}
           onClick={handleInvestigate}
         >
-          Recognize Selected Face
+          Recognize selected face
         </button>
       </div>
 
@@ -344,7 +326,7 @@ export default function UploadForm({ onMemoryRunStart, onUploadComplete }: Props
             type="button"
             disabled={!canEnroll}
             onClick={() => void handleEnroll()}
-            className="px-4 py-2 rounded-md bg-board-accent text-black font-semibold disabled:opacity-60"
+            className="btn btn-primary"
           >
             {enrolling ? "Saving..." : "Save & Refresh Recognition"}
           </button>

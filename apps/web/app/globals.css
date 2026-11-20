@@ -4,25 +4,152 @@
 
 :root {
   color-scheme: dark;
+  --ink: #f4efe6;
+  --muted: #b7b1a6;
+  --ground: #14120f;
+  --surface: #1e1b16;
+  --line: rgba(244, 239, 230, 0.14);
+  --action: #e4b15a;
+  --action-ink: #1a140c;
+  --radius: 12px;
 }
 
 body {
-  @apply bg-board-base text-gray-200 min-h-screen;
-  font-family: Manrope, Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  background-image: linear-gradient(135deg, rgba(255,255,255,0.02) 0%, rgba(255,255,255,0.01) 100%),
-    repeating-linear-gradient(0deg, transparent, transparent 48px, rgba(255,255,255,0.015) 50px, rgba(255,255,255,0.015) 52px),
-    repeating-linear-gradient(90deg, transparent, transparent 48px, rgba(255,255,255,0.015) 50px, rgba(255,255,255,0.015) 52px);
-  background-size: cover, 52px 52px, 52px 52px;
+  min-height: 100vh;
+  background: var(--ground);
+  color: var(--ink);
+  font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+h1,
+h2,
+.display {
+  font-family: var(--font-display), Georgia, serif;
+  font-weight: 500;
+  letter-spacing: -0.02em;
 }
 
 a {
-  @apply text-board-accent hover:text-yellow-200 transition-colors;
+  color: inherit;
+  text-underline-offset: 3px;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+:focus-visible {
+  outline: 2px solid var(--action);
+  outline-offset: 3px;
+}
+
+.page {
+  width: min(1120px, calc(100% - 48px));
+  margin-inline: auto;
+  padding-block: 40px 64px;
+}
+
+.kicker {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--muted);
+}
+
+.lead {
+  max-width: 62ch;
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--ink);
 }
 
 .card {
-  @apply bg-board-card/90 backdrop-blur border border-white/5 rounded-xl shadow-card;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.04) inset;
 }
 
 .badge {
-  @apply inline-flex items-center px-2 py-1 text-xs uppercase tracking-widest rounded-md bg-white/10 text-gray-100;
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 0 10px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.btn,
+button.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0 16px;
+  border-radius: var(--radius);
+  border: 1px solid transparent;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1;
+  transition: transform 160ms ease, background-color 160ms ease, border-color 160ms ease;
+}
+
+.btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+}
+
+.btn:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  background: var(--action);
+  color: var(--action-ink);
+}
+
+.btn-quiet {
+  background: transparent;
+  border-color: var(--line);
+  color: var(--ink);
+}
+
+.btn-quiet:hover:not(:disabled) {
+  background: rgba(244, 239, 230, 0.06);
+}
+
+.uppercase.tracking-wide,
+.uppercase.tracking-widest {
+  letter-spacing: 0;
+  text-transform: none;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--muted);
+}
+
+input,
+textarea,
+select {
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: rgba(0, 0, 0, 0.22);
+  color: var(--ink);
+  font: inherit;
+}
+
+@media (max-width: 640px) {
+  .page {
+    width: min(1120px, calc(100% - 32px));
+  }
 }

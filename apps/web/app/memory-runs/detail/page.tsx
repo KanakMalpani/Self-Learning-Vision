@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import MemoryReportPanel from "@/components/MemoryReportPanel";
 import ActivityFeed from "@/components/ActivityFeed";
+import { readApiFailure } from "@/lib/api-error";
 import { fetchMemoryRun } from "@/lib/api-client";
 import { useAuth } from "@/lib/auth-context";
 import { ProtectedRoute } from "@/lib/protected-route";
@@ -35,14 +36,15 @@ function MemoryRunDetailContent() {
         setDetail(payload);
         setError(null);
       })
-      .catch((err: any) => {
+      .catch((error: unknown) => {
         if (!active) return;
-        if (err.status === 401) {
+        const failure = readApiFailure(error, "Failed to load memory run");
+        if (failure.status === 401) {
           logout();
           router.push("/login?message=Session+expired");
           return;
         }
-        setError(err.message || "Failed to load memory run");
+        setError(failure.message);
       })
       .finally(() => {
         if (active) setLoading(false);

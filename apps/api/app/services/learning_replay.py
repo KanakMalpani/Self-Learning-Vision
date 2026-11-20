@@ -5,7 +5,10 @@ from typing import Any
 
 from app.services.active_learning_priority import ActiveLearningPriorityScorer
 from app.services.active_learning_registry import ActiveLearningRegistry
-from app.services.contradiction_detector import detect_memory_contradictions, record_conflict_signals
+from app.services.contradiction_detector import (
+    detect_memory_contradictions,
+    record_conflict_signals,
+)
 from app.services.correction_log_registry import CorrectionLogRecord
 from app.services.learning_signal_registry import LearningSignalRecord, LearningSignalRegistry
 from app.services.memory_entity_registry import MemoryEntityRecord, MemoryEntityRegistry
@@ -33,7 +36,9 @@ def build_replay_suggestions(
     conflict_signal_ids = [
         signal.signal_id
         for signal in learning_signals
-        if signal.entity_id == entity.entity_id and signal.signal_type == "contradiction" and signal.status == "pending"
+        if signal.entity_id == entity.entity_id
+        and signal.signal_type == "contradiction"
+        and signal.status == "pending"
     ]
     if conflicts or conflict_signal_ids:
         suggestions.append(
@@ -90,7 +95,9 @@ def apply_learning_replay(
 ) -> LearningReplayResult:
     entity = entity_registry.find(entity_id)
     if entity is None:
-        return LearningReplayResult(applied=False, entity=None, summary={"reason": "memory not found"})
+        return LearningReplayResult(
+            applied=False, entity=None, summary={"reason": "memory not found"}
+        )
 
     learning_signals = signal_registry.list_signals()
     conflicts = detect_memory_contradictions(
@@ -124,20 +131,26 @@ def apply_learning_replay(
     updated = entity
 
     if conflicts and entity.lifecycle_state not in {"archived", "forgotten"}:
-        updated = entity_registry.record_contradiction(
-            entity_id=entity.entity_id,
-            rejected_label=None,
-            amount=0.05,
-            reason="Learning replay applied conflict evidence",
-        ) or entity
+        updated = (
+            entity_registry.record_contradiction(
+                entity_id=entity.entity_id,
+                rejected_label=None,
+                amount=0.05,
+                reason="Learning replay applied conflict evidence",
+            )
+            or entity
+        )
 
     pending_related = [
         signal
         for signal in signal_registry.list_signals(status="pending", entity_id=entity.entity_id)
-        if signal.signal_type in {"contradiction", "candidate_review", "low_health", "passive_observation"}
+        if signal.signal_type
+        in {"contradiction", "candidate_review", "low_health", "passive_observation"}
     ]
     for signal in pending_related:
-        resolved = signal_registry.resolve_signal(signal.signal_id, resolution="Learning replay applied")
+        resolved = signal_registry.resolve_signal(
+            signal.signal_id, resolution="Learning replay applied"
+        )
         if resolved:
             affected_signal_ids.append(resolved.signal_id)
 
